@@ -1,0 +1,8 @@
+.DS_Store
+*~
+.rvmrc
+
+
+#haskell junk
+*.o
+a.out

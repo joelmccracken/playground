@@ -1,0 +1,2 @@
+#!/bin/bash
+bundle exec ruby $(dirname $BASH_SOURCE)/play.rb
