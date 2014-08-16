@@ -17,4 +17,3 @@ playgrounds = [
 playgrounds.each do |pground|
   load "#{pground[:directory]}/play_#{pground[:name]}.rb"
 end
-
