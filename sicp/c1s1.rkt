@@ -141,10 +141,12 @@ infinitely, because calling it once forces it to be called again, and again, etc
      (define (sqrt x)
        (sqrt-iter 1.0 x))
 
+     (define tolerance-setting 0.001)
+
      ;; throughout this test good-enough? will be
      ;; redefined many times. here is the initial version
      (define (good-enough? guess x)
-       (< (abs (- (square guess) x)) 0.001))
+       (< (abs (- (square guess) x)) tolerance-setting))
 
      ;; there are two cases under discussion here
      ;; the first is finding the square root of a very small number.
@@ -173,23 +175,60 @@ infinitely, because calling it once forces it to be called again, and again, etc
      ;; stored as exponents and addition operations do not store
      ;; precise detail -- thus the guess will never be within the TS,
      ;; as no guess will store enough detail. So, we should expect the
-     ;; algorithm to infinitely recurse. The exception to this is
+     ;; algorithm to recurse infinitely. The exception to this is
      ;; that if the square root of X we are solving for happens to be
      ;; guessed, and that X is also precisely one of these numbers
      ;; that a large number is stored as, this algorithm should still
      ;; work.
-     (check-exn exn:fail?
-                (check-does-not-finish-speedily
-                 (thunk
-                  (let ([really-large-number 110798789796967820678678678729834.0])
-                    (check-equal? (sqrt really-large-number) 10)))
-                 0.1))
+     (check-does-not-finish-speedily
+      (thunk
+       (let ([really-large-number 110798789796967820678678678729834.0])
+         (sqrt really-large-number)))
+      0.1)
 
-     ;; the next piece of this -- writing a better `good-enough?` --
-     ;; still needs to be done. The general idea is to check to see if
-     ;; forward progress is being made, and otherwise return the results.
+     ;; now we write a better "good enough?"
+
+     (define (sqrt2 x)
+       (sqrt-iter2 1.0 x))
+
+     (define (sqrt-iter2 guess x)
+       (let ((guess-next (improve guess x)))
+         (if (good-enough?2 guess
+                            guess-next
+                            x)
+             guess
+             (sqrt-iter2 guess-next
+                         x))))
+
+     (define (good-enough?2 guess next-guess x)
+       (let ((difference (- guess next-guess)))
+         (< (/ (abs (- guess next-guess))
+               guess)
+            tolerance-setting)))
+
+     ;; these numbers are pretty close
+     (check-equal? (square (sqrt2 103242340.0)) 103243371.8900923)
 
 
+     ;; check the earlier very large example
+     (let ([really-large-number 110798789796967820678678678729834.0])
+       (let ((root (sqrt2 really-large-number)))
+         (check-equal? (square root)
+                       1.1079929164634483e+32 ;; pretty close
+                       )))
+     ;; we see that good-enough definition is able to actually find an
+     ;; aswer for these very large numbers. Huzzah! Lets try small
+     ;; numbers:
+
+     (let ((accurate-root-answer 0.010000714038711746))
+       ;; the answer listen in the let above is incorrect. Here we see
+       ;; that it is what the sqrt method returns
+       (check-equal? (sqrt2 0.0001) accurate-root-answer)
+
+       ;; and here we see that the square of this provided root is
+       ;;                         very different from 0.0001
+       (check-equal? (square accurate-root-answer) 0.00010001428128408621))
+     ;; so, this algorithm also works much better for small numbers.
      )))
 
 ;; (require rackunit/gui)
