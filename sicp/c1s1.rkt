@@ -231,6 +231,47 @@ infinitely, because calling it once forces it to be called again, and again, etc
      ;; so, this algorithm also works much better for small numbers.
      )))
 
+(define ex-1.8-tests
+  (test-suite
+   "cube root implementation"
+   (let ()
+     ;; the question alluded to a general root-approximation-finding
+     ;; method, so I'm going to go ahead and try to implement that
+     ;; here. I know a bit about scheme already, and am trying to keep
+     ;; things interesting ;)
+
+     (define (value-approximator better-approximation good-enough?)
+       (define (approximator-iter target guess)
+         (if (good-enough? guess target)
+             guess
+             (approximator-iter target
+                                (better-approximation guess target))))
+       (define (approximator value-to-approximate)
+         (approximator-iter value-to-approximate 1.0))
+       approximator)
+
+     (define (cubed-root-better-approximation guess target)
+       (/ (+ (/ target
+                (* guess guess))
+             (* 2 guess))
+          3))
+
+     (define (good-enough? guess x)
+       (< (abs (- (* guess guess guess) x)) 0.001))
+
+     (define cubed-root
+       (value-approximator cubed-root-better-approximation
+                           good-enough?))
+
+
+     (let* ((approx (cubed-root 9.0))
+            (approx3 (* approx approx approx)))
+       (check-pred
+        (lambda (v) (< (- v 9.0) 0.01))
+        approx3))
+     null)))
+
+
 ;; (require rackunit/gui)
 
 
@@ -239,3 +280,4 @@ infinitely, because calling it once forces it to be called again, and again, etc
 (run-tests ex-1.2-tests)
 (run-tests ex-1.3-tests)
 (run-tests ex-1.7-tests)
+(run-tests ex-1.8-tests)
