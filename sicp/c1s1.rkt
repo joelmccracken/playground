@@ -271,13 +271,18 @@ infinitely, because calling it once forces it to be called again, and again, etc
         approx3))
      null)))
 
+(provide ex-1.1-tests)
+(provide ex-1.2-tests)
+(provide ex-1.3-tests)
+(provide ex-1.7-tests)
+(provide ex-1.8-tests)
 
 ;; (require rackunit/gui)
 
 
+;; (run-tests ex-1.1-tests)
+;; (run-tests ex-1.2-tests)
+;; (run-tests ex-1.3-tests)
+;; (run-tests ex-1.7-tests)
+;; (run-tests ex-1.8-tests)
 
-(run-tests ex-1.1-tests)
-(run-tests ex-1.2-tests)
-(run-tests ex-1.3-tests)
-(run-tests ex-1.7-tests)
-(run-tests ex-1.8-tests)
