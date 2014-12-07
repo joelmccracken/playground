@@ -94,21 +94,7 @@ out for a few more cases.
    (check-equal? (A 1 10) 1024)
    (check-equal? (A 2 4) 65536)
    (check-equal? (A 3 3) 65536)))
-
-(define ex-1.11-tests
-  (test-suite
-   "in-place vs tree-recursive function definitions"
-   (let ()
-     (define (f n)
-       (cond ((< n 3) n)
-             (true 6)))
-     (f 1))))
-
-
 (provide ex-1.10-tests)
-(provide ex-1.11-tests)
-
 ;; (run-tests ex-1.10-tests)
-;; (run-tests ex-1.11-tests)
 
 
