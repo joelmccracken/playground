@@ -1,3 +1,4 @@
+RACKET_PATH = "/opt/homebrew-cask/Caskroom/racket/6.1.1/Racket\ v6.1.1/bin/racket"
 
 def sicp_requires
   Dir['sicp/*.rkt'].map { |file|
@@ -6,7 +7,7 @@ def sicp_requires
 end
 
 def sicp_invocation extras
-  ["/Applications/Racket v5.3.4/bin/racket"] + sicp_requires + extras
+  [RACKET_PATH] + sicp_requires + extras
 end
 
 def sicp_shell_invocation
@@ -27,13 +28,18 @@ def sicp_test_invocation
     ["-e", exercises.map {|ex| "(run-tests ex-#{ex}-tests)"}.join(" ")]
 end
 
+def sys(*args)
+  puts args.map{|it| "'#{it}'" }.join " "
+  system *args
+end
+
 task :build do
- system *sicp_test_invocation
+  sys *sicp_test_invocation
 end
 
 namespace :sicp do
   task :shell do
-    system *sicp_shell_invocation
+    sys *sicp_shell_invocation
   end
 end
 
