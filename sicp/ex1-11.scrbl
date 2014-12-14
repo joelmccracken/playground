@@ -6,20 +6,14 @@
 
 @title{SICP Exercise 1.11}
 
-
 @nested{
   A function f is defined by the rule that f(n) = n if n<3 and f(n) = f(n - 1) + 2f(n - 2) + 3f(n - 3) if n>= 3.
   Write a procedure that computes f by means of a recursive process.
   Write a procedure that computes f by means of an iterative process.
 }
 
-
-
-
 @examples[
-                            
           (require rackunit)
-
           (define record-start #f)
           
           (define (get-continuation-size)
@@ -27,13 +21,12 @@
               (vector-set-performance-stats! results (current-thread))
               ;; item 3 contains continuation size
               (vector-ref results 3)))
-          
-          
+  
           (define (record-stack name)
             (when record-start
-              (write (list name (get-continuation-size)))))
+              (displayln (list name (get-continuation-size)))))
        
-          (define (f-recursive n)
+               (define (f-recursive n)
             (record-stack "f-recursive")
             (if (< n 3)
                 n
@@ -57,7 +50,7 @@
             (if (< n 3)
                 n
                 (f-iter-intern 3 2 1 0)))
-
+          
           (define (test-f f)
             (check-eqv? (f 0) 0)
             (check-eqv? (f 1) 1)
