@@ -1,0 +1,141 @@
+digraph execution_tree {
+node [shape=record];
+	exec0 [label="<f0>cc|<f1>11|<f2>5"];
+	exec0 -> {exec1; exec2}
+	exec1 [label="<f0>cc|<f1>11|<f2>4"];
+	exec1 -> {exec3; exec4}
+	exec3 [label="<f0>cc|<f1>11|<f2>3"];
+	exec3 -> {exec5; exec6}
+	exec5 [label="<f0>cc|<f1>11|<f2>2"];
+	exec5 -> {exec7; exec8}
+	exec7 [label="<f0>cc|<f1>11|<f2>1"];
+	exec7 -> {exec9; exec10}
+	exec9 [label="<f0>cc|<f1>11|<f2>0"];
+	zedval11 [label="0"];
+	exec9 -> zedval11;
+	exec10 [label="<f0>cc|<f1>10|<f2>1"];
+	exec10 -> {exec13; exec14}
+	exec13 [label="<f0>cc|<f1>10|<f2>0"];
+	zedval15 [label="0"];
+	exec13 -> zedval15;
+	exec14 [label="<f0>cc|<f1>9|<f2>1"];
+	exec14 -> {exec17; exec18}
+	exec17 [label="<f0>cc|<f1>9|<f2>0"];
+	zedval19 [label="0"];
+	exec17 -> zedval19;
+	exec18 [label="<f0>cc|<f1>8|<f2>1"];
+	exec18 -> {exec21; exec22}
+	exec21 [label="<f0>cc|<f1>8|<f2>0"];
+	zedval23 [label="0"];
+	exec21 -> zedval23;
+	exec22 [label="<f0>cc|<f1>7|<f2>1"];
+	exec22 -> {exec25; exec26}
+	exec25 [label="<f0>cc|<f1>7|<f2>0"];
+	zedval27 [label="0"];
+	exec25 -> zedval27;
+	exec26 [label="<f0>cc|<f1>6|<f2>1"];
+	exec26 -> {exec29; exec30}
+	exec29 [label="<f0>cc|<f1>6|<f2>0"];
+	zedval31 [label="0"];
+	exec29 -> zedval31;
+	exec30 [label="<f0>cc|<f1>5|<f2>1"];
+	exec30 -> {exec33; exec34}
+	exec33 [label="<f0>cc|<f1>5|<f2>0"];
+	zedval35 [label="0"];
+	exec33 -> zedval35;
+	exec34 [label="<f0>cc|<f1>4|<f2>1"];
+	exec34 -> {exec37; exec38}
+	exec37 [label="<f0>cc|<f1>4|<f2>0"];
+	zedval39 [label="0"];
+	exec37 -> zedval39;
+	exec38 [label="<f0>cc|<f1>3|<f2>1"];
+	exec38 -> {exec41; exec42}
+	exec41 [label="<f0>cc|<f1>3|<f2>0"];
+	zedval43 [label="0"];
+	exec41 -> zedval43;
+	exec42 [label="<f0>cc|<f1>2|<f2>1"];
+	exec42 -> {exec45; exec46}
+	exec45 [label="<f0>cc|<f1>2|<f2>0"];
+	zedval47 [label="0"];
+	exec45 -> zedval47;
+	exec46 [label="<f0>cc|<f1>1|<f2>1"];
+	exec46 -> {exec49; exec50}
+	exec49 [label="<f0>cc|<f1>1|<f2>0"];
+	zedval51 [label="0"];
+	exec49 -> zedval51;
+	exec50 [label="<f0>cc|<f1>0|<f2>1"];
+	oneval53 [label="1"];
+	exec50 -> oneval53;
+	exec8 [label="<f0>cc|<f1>6|<f2>2"];
+	exec8 -> {exec55; exec56}
+	exec55 [label="<f0>cc|<f1>6|<f2>1"];
+	exec55 -> {exec57; exec58}
+	exec57 [label="<f0>cc|<f1>6|<f2>0"];
+	zedval59 [label="0"];
+	exec57 -> zedval59;
+	exec58 [label="<f0>cc|<f1>5|<f2>1"];
+	exec58 -> {exec61; exec62}
+	exec61 [label="<f0>cc|<f1>5|<f2>0"];
+	zedval63 [label="0"];
+	exec61 -> zedval63;
+	exec62 [label="<f0>cc|<f1>4|<f2>1"];
+	exec62 -> {exec65; exec66}
+	exec65 [label="<f0>cc|<f1>4|<f2>0"];
+	zedval67 [label="0"];
+	exec65 -> zedval67;
+	exec66 [label="<f0>cc|<f1>3|<f2>1"];
+	exec66 -> {exec69; exec70}
+	exec69 [label="<f0>cc|<f1>3|<f2>0"];
+	zedval71 [label="0"];
+	exec69 -> zedval71;
+	exec70 [label="<f0>cc|<f1>2|<f2>1"];
+	exec70 -> {exec73; exec74}
+	exec73 [label="<f0>cc|<f1>2|<f2>0"];
+	zedval75 [label="0"];
+	exec73 -> zedval75;
+	exec74 [label="<f0>cc|<f1>1|<f2>1"];
+	exec74 -> {exec77; exec78}
+	exec77 [label="<f0>cc|<f1>1|<f2>0"];
+	zedval79 [label="0"];
+	exec77 -> zedval79;
+	exec78 [label="<f0>cc|<f1>0|<f2>1"];
+	oneval81 [label="1"];
+	exec78 -> oneval81;
+	exec56 [label="<f0>cc|<f1>1|<f2>2"];
+	exec56 -> {exec83; exec84}
+	exec83 [label="<f0>cc|<f1>1|<f2>1"];
+	exec83 -> {exec85; exec86}
+	exec85 [label="<f0>cc|<f1>1|<f2>0"];
+	zedval87 [label="0"];
+	exec85 -> zedval87;
+	exec86 [label="<f0>cc|<f1>0|<f2>1"];
+	oneval89 [label="1"];
+	exec86 -> oneval89;
+	exec84 [label="<f0>cc|<f1>-4|<f2>2"];
+	zedval91 [label="0"];
+	exec84 -> zedval91;
+	exec6 [label="<f0>cc|<f1>1|<f2>3"];
+	exec6 -> {exec93; exec94}
+	exec93 [label="<f0>cc|<f1>1|<f2>2"];
+	exec93 -> {exec95; exec96}
+	exec95 [label="<f0>cc|<f1>1|<f2>1"];
+	exec95 -> {exec97; exec98}
+	exec97 [label="<f0>cc|<f1>1|<f2>0"];
+	zedval99 [label="0"];
+	exec97 -> zedval99;
+	exec98 [label="<f0>cc|<f1>0|<f2>1"];
+	oneval101 [label="1"];
+	exec98 -> oneval101;
+	exec96 [label="<f0>cc|<f1>-4|<f2>2"];
+	zedval103 [label="0"];
+	exec96 -> zedval103;
+	exec94 [label="<f0>cc|<f1>-9|<f2>3"];
+	zedval105 [label="0"];
+	exec94 -> zedval105;
+	exec4 [label="<f0>cc|<f1>-14|<f2>4"];
+	zedval107 [label="0"];
+	exec4 -> zedval107;
+	exec2 [label="<f0>cc|<f1>-39|<f2>5"];
+	zedval109 [label="0"];
+	exec2 -> zedval109;
+ } 
