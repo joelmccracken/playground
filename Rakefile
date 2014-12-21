@@ -1,4 +1,5 @@
-RACKET_PATH = "/opt/homebrew-cask/Caskroom/racket/6.1.1/Racket\ v6.1.1/bin/racket"
+RACKET_BIN_DIR = "/opt/homebrew-cask/Caskroom/racket/6.1.1/Racket\ v6.1.1/bin"
+RACKET_PATH = "#{RACKET_BIN_DIR}/racket"
 
 def sicp_requires
   Dir['sicp/*.rkt'].map { |file|
@@ -32,6 +33,14 @@ def sys(*args)
   puts args.map{|it| "'#{it}'" }.join " "
   system *args
 end
+
+
+task :scribble do
+  # sys *%W{#{RACKET_BIN_DIR}/scribble sicp/ex1-11.scrbl}
+  sys *%W{#{RACKET_BIN_DIR}/scribble sicp/sicp.scrbl}
+  sys *%W{open sicp.html}
+end
+
 
 task :build do
   sys *sicp_test_invocation
