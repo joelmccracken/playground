@@ -1,5 +1,8 @@
 import Control.Exception
 
+
+-- Exercise 1
+
 toDigits :: Integer -> [Integer]
 
 toDigits 0 = []
@@ -16,11 +19,18 @@ toDigitsRev = reverse . toDigits
 
 toDigitsAssertions :: Bool
 toDigitsAssertions =
-  assert ((toDigits 1234) == [1,2,3,4]) True    &&
-  assert ((toDigitsRev 1234) == [4,3,2,1]) True &&
-  assert ((toDigits 0) == []) True              &&
-  assert ((toDigits (-17)) == []) True
+  assert
+ ((toDigits 1234) == [1,2,3,4]) True    &&
+  assert
+ ((toDigitsRev 1234) == [4,3,2,1]) True &&
+  assert
+ ((toDigits 0) == []) True              &&
+  assert
+ ((toDigits (-17)) == []) True
 
+
+
+-- Exercise 2
 
 doubleEveryOther :: [Integer] -> [Integer]
 doubleEveryOther xs = reverse $ doubleEveryOtherInt $ reverse xs
@@ -30,11 +40,17 @@ doubleEveryOther xs = reverse $ doubleEveryOtherInt $ reverse xs
 
 doubleEveryOtherAssertions :: Bool
 doubleEveryOtherAssertions =
-  assert ((doubleEveryOther [1,2,3,4]) == [2,2,6,4]) True   &&
-  assert ((doubleEveryOther [8,7,6,5]) == [16,7,12,5]) True &&
-  assert ((doubleEveryOther [1,2,3])   == [1,4,3]) True     &&
-  assert ((doubleEveryOther [])        == []) True
+  assert
+ ((doubleEveryOther [1,2,3,4]) == [2,2,6,4]) True   &&
+  assert
+ ((doubleEveryOther [8,7,6,5]) == [16,7,12,5]) True &&
+  assert
+ ((doubleEveryOther [1,2,3])   == [1,4,3]) True     &&
+  assert
+ ((doubleEveryOther [])        == []) True
 
+
+-- Exercise 3
 
 sumDigits :: [Integer] -> Integer
 sumDigits xs = sum $ concatMap toDigits xs
@@ -42,8 +58,11 @@ sumDigits xs = sum $ concatMap toDigits xs
 
 sumDigitsAssertions :: Bool
 sumDigitsAssertions =
-  assert ((sumDigits [16,7,12,5]) == 22) True
+  assert
+ ((sumDigits [16,7,12,5]) == 22) True
 
+
+-- Exercise 4
 
 validate :: Integer -> Bool
 validate x = ((sumDigits $ doubleEveryOther $ toDigits x) `mod` 10) == 0
@@ -51,6 +70,41 @@ validate x = ((sumDigits $ doubleEveryOther $ toDigits x) `mod` 10) == 0
 validateAssertions =
   assert ((validate 4012888888881881) == True) True   &&
   assert ((validate 4012888888881882) == False) True
+
+-- Exercise 5
+
+type Peg = String
+type Move = (Peg, Peg)
+
+hanoi :: Integer -> Peg -> Peg -> Peg -> [Move]
+hanoi 0 _ _ _ = []
+hanoi n start goal temp =
+  hanoi (n - 1) start temp goal ++
+  [(start, goal)] ++
+  hanoi (n - 1) temp goal start
+
+hanoiAssertions =
+  assert (hanoi 2 "a" "b" "c" == [("a","c"), ("a","b"), ("c","b")]) True &&
+  assert ((length (hanoi 15 "a" "b" "c")) == 32767) True
+
+-- Exercise 6
+
+hanoi4 :: Integer -> Peg -> Peg -> Peg -> Peg -> [Move]
+hanoi4 0 _ _ _ _ = []
+hanoi4 n start goal temp1 temp2 =
+  hanoi4 topHalf start temp1 goal temp2 ++
+  hanoi4 bottomHalf start temp2 goal temp1 ++
+  [(start, goal)] ++
+  hanoi4 bottomHalf temp2 goal start temp1 ++
+  hanoi4 topHalf temp1 goal start temp2
+  where
+    remaining = n - 1
+    topHalf = remaining `div` 2
+    bottomHalf = remaining - topHalf
+
+
+hanoi4Assertions =
+  assert ((length (hanoi4 15 "a" "b" "c" "d")) == 129) True
 
 main :: IO ()
 main = do
@@ -65,3 +119,13 @@ main = do
 
   putStrLn "validateAssertions..."
   print validateAssertions
+
+  putStrLn "hanoiAssertions..."
+  print hanoiAssertions
+
+  putStrLn "hanoi4Assertions..."
+
+
+  print $ length $ hanoi4 15 "a" "b" "c" "d"
+
+  print hanoi4Assertions
