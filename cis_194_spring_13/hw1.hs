@@ -93,9 +93,9 @@ hanoi4 :: Integer -> Peg -> Peg -> Peg -> Peg -> [Move]
 hanoi4 0 _ _ _ _ = []
 hanoi4 n start goal temp1 temp2 =
   hanoi4 topHalf start temp1 goal temp2 ++
-  hanoi4 bottomHalf start temp2 goal temp1 ++
+  hanoi bottomHalf start temp2 goal ++
   [(start, goal)] ++
-  hanoi4 bottomHalf temp2 goal start temp1 ++
+  hanoi bottomHalf temp2 goal start ++
   hanoi4 topHalf temp1 goal start temp2
   where
     remaining = n - 1
@@ -105,6 +105,22 @@ hanoi4 n start goal temp1 temp2 =
 
 hanoi4Assertions =
   assert ((length (hanoi4 15 "a" "b" "c" "d")) == 129) True
+
+
+-- hanoi4 :: Integer -> Peg -> Peg -> Peg -> Peg -> [Move]
+-- hanoi4 0 _ _ _ _ = []
+-- hanoi4 1 start goal _ _ = [(start, goal)]
+-- hanoi4 n start goal temp1 temp2 =
+--   hanoi4 (n-2) start temp1 goal temp2 ++
+--   [(start, temp2)] ++
+--   [(start, goal)] ++
+--   [(temp2, goal)] ++
+--   hanoi4 (n-2) temp1 goal temp2 start
+
+-- hanoi4Assertions =
+--   assert ((length (hanoi4 15 "a" "b" "c" "d")) == 129) True
+
+
 
 main :: IO ()
 main = do
@@ -124,7 +140,6 @@ main = do
   print hanoiAssertions
 
   putStrLn "hanoi4Assertions..."
-
 
   print $ length $ hanoi4 15 "a" "b" "c" "d"
 
