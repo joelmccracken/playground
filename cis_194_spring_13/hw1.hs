@@ -74,7 +74,6 @@ validateAssertions =
 -- Exercise 5
 
 type Peg = String
-type Move = (Peg, Peg)
 
 hanoi :: Integer -> Peg -> Peg -> Peg -> [Move]
 hanoi 0 _ _ _ = []
@@ -99,47 +98,51 @@ hanoi4 n start goal temp1 temp2 =
   hanoi4 topHalf temp1 goal start temp2
   where
     remaining = n - 1
-    topHalf = remaining `div` 2
-    bottomHalf = remaining - topHalf
+    half = remaining `div` 2
+    topHalf = (max (remaining - half) half)
+    bottomHalf = (min (remaining-half) half)
 
 h4 n = hanoi4 n "a" "b" "c" "d"
 
-
-
 type HanoiStateVis = [[Integer]]
-data VisItem = HanoiStateVis | Move
+data VisItem = HanoiStateVis HanoiStateVis | Move Move deriving Show
+type Move = (Peg, Peg)
 
 h4v :: Integer -> [Move] -> [VisItem]
-h4v n states = vis [[1..n], [], [], []] states
+h4v n states = vis ([[1..n], [], [], []]) states
 
 vis :: HanoiStateVis -> [Move] -> [VisItem]
-vis _ []        = []
+vis newState []        = [HanoiStateVis newState]
 vis state (move:moves) =
-  [state, move, newState] ++ vis newState moves
+  [HanoiStateVis state, Move move] ++ vis newState moves
   where
     newState = nextState state move
 
 nextState :: HanoiStateVis -> Move -> HanoiStateVis
-nextState ((a:as):(b:bs):(c:cs):(d:ds):[]) (from, to) =
-  let newas = newStateInt "a" a as
-      newbs = newStateInt "b" b bs
-      newcs = newStateInt "c" c cs
-      newds = newStateInt "d" d ds
+nextState  (as:bs:cs:ds:_) (from, to) =
+  let newas = newStateInt "a" as
+      newbs = newStateInt "b" bs
+      newcs = newStateInt "c" cs
+      newds = newStateInt "d" ds
   in
     [newas, newbs, newcs, newds]
   where
     moved =
       case from of
-        "a" -> a
-        "b" -> b
-        "c" -> c
-        "d" -> d
-    newStateInt :: String -> Integer -> [Integer] -> [Integer]
-    newStateInt col x xs =
-      case col of
-        from -> xs
-        to   -> (moved : x : xs)
-        _    -> (x:xs)
+        "a" -> head as
+        "b" -> head bs
+        "c" -> head cs
+        "d" -> head ds
+    newStateInt :: String -> [Integer] -> [Integer]
+    newStateInt col xs =
+      case () of
+        _
+          | col == from -> xs'
+          | col == to   -> (moved : xs)
+          | otherwise   -> xs
+      where
+        x = head xs
+        xs' = tail xs
 
 -- hanoi4 :: Integer -> Peg -> Peg -> Peg -> Peg -> [Move]
 -- hanoi4 0 _ _ _ _ = []
@@ -161,30 +164,32 @@ fourth (_:_:_:x:_) = x
 
 type HanoiState = [[Integer]]
 
+
+
+floop x =
+  case x of
+    HanoiStateVis y -> print y
+    Move          y -> print y
+
+
+num = 6
+
 main :: IO ()
 main = do
-  print $ hanoi4 5 "a" "b" "c" "d"
-  print $ length $ hanoi4 15 "a" "b" "c" "d"
+  putStrLn "toDigitsAssertions..."
+  print toDigitsAssertions
 
--- main :: IO ()
--- main = do
---   putStrLn "toDigitsAssertions..."
---   print toDigitsAssertions
+  putStrLn "doubleEveryOtherAssertions..."
+  print doubleEveryOtherAssertions
 
---   putStrLn "doubleEveryOtherAssertions..."
---   print doubleEveryOtherAssertions
+  putStrLn "sumDigitsAssertions..."
+  print sumDigitsAssertions
 
---   putStrLn "sumDigitsAssertions..."
---   print sumDigitsAssertions
+  putStrLn "validateAssertions..."
+  print validateAssertions
 
---   putStrLn "validateAssertions..."
---   print validateAssertions
+  putStrLn "hanoiAssertions..."
+  print hanoiAssertions
 
---   putStrLn "hanoiAssertions..."
---   print hanoiAssertions
-
---   putStrLn "hanoi4Assertions..."
-
---   print $ length $ hanoi4 15 "a" "b" "c" "d"
-
---   print hanoi4Assertions
+  mapM_ floop $ h4v num $ hanoi4 num "a" "b" "c" "d"
+  print $ length        $ hanoi4 15 "a" "b" "c" "d"
