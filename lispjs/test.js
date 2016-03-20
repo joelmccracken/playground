@@ -49,46 +49,121 @@ function testLibraryFunctions()
     )
 }
 
-
 // only test the very basics of the data structures
 function testASTBits()
 {
 
 }
 
-var Tokens = {
-    lParen: Symbol('('),
-    rParen: Symbol(')'),
-    whitespace: Symbol('ws'),
-    word: Symbol('word')
+var TokenTypes = {
+    lParen: '(',
+    rParen: ')',
+    whitespace: 'space',
+    newline: 'newline',
+    symbol: 'symbol',
+    number: 'number'
+}
+
+function tryMatchRe(str, re) {
+    var match = str.match(re)
+    if(match) {
+        var matched = match[0];
+        var remaining = str.substring(matched.length);
+
+        return {remaining: remaining, value: matched};
+    } else {
+        return false;
+    }
+}
+
+function token(type, value, line, col) {
+    return {
+        type: type,
+        value: value,
+        line: line,
+        col:  col
+    };
 }
 
 function read(str) {
-    function tokenBuilder(type, value, line, col) {
-        return {
-            type: type,
-            type: value,
-            line: line,
-            col:  col
-        };
+    var remainingToRead = str;
+    var SPACE_RE = /^[ \t]+/;
+    var SYMBOL_RE = /^[\w-]+/;
+    var NUMBER_RE = /^[\d]+/;
+    var line = 0;
+    var col = 0;
+    var tokens = [];
+    var currentToken = null;
+
+    while(remainingToRead.length > 0) {
+        var matched;
+        if(matched = tryMatchRe(remainingToRead, SPACE_RE)) {
+            tokens.push(token(TokenTypes.whitespace,
+                              matched.value,
+                              line,
+                              col
+                             ));
+            remainingToRead = matched.remaining;
+            col += matched.value.length;
+        } else if(matched = tryMatchRe(remainingToRead, SYMBOL_RE)) {
+            tokens.push(token(TokenTypes.symbol,
+                              matched.value,
+                              line,
+                              col
+                             ));
+            remainingToRead = matched.remaining;
+            col += matched.value.length;
+        } else if(matched = tryMatchRe(remainingToRead, NUMBER_RE)) {
+            tokens.push(token(TokenTypes.number,
+                              matched.value,
+                              line,
+                              col
+                             ));
+            remainingToRead = matched.remaining;
+            col += matched.value.length;
+        } else if(remainingToRead[0] == "\n") {
+            tokens.push(token(TokenTypes.newline,
+                              null,
+                              line,
+                              col
+                             ));
+
+            remainingToRead = _.rest(remainingToRead).join('');
+            line += 1;
+            col  =  0;
+        } else if(remainingToRead[0] == "(") {
+            tokens.push(token(TokenTypes.lParen,
+                              null,
+                              line,
+                              col
+                             ));
+
+            remainingToRead = _.rest(remainingToRead).join('');
+            col += 1;
+        } else if(remainingToRead[0] == ")") {
+            tokens.push(token(TokenTypes.rParen,
+                              null,
+                              line,
+                              col
+                             ));
+
+            remainingToRead = _.rest(remainingToRead).join('');
+            col += 1;
+        } else {
+            throw `Parser error, unable to parse starting from: ${remainingToRead}`
+        }
     }
-
-    function readStart(str) {
-    }
-
-
-    return readStart();
+    return tokens;
 }
 
-
-function testReaderBits()
+function testReader()
 {
+
+
     var out = read("()")
 
+    console.log(out)
 }
-
-
-
 
 testLibraryFunctions()
 testASTBits()
