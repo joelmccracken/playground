@@ -1,6 +1,7 @@
 'use strict';
 
 let vau = require('./lib/vau');
+
 let assert = require('assert');
 let _ = require('underscore');
 
@@ -18,7 +19,7 @@ var equal = function(a,b) {
     if(a instanceof AST.Symbol &&
        b instanceof AST.Symbol)
         return a.sym_name == b.sym_name;
-}
+};
 
 
 
@@ -27,10 +28,11 @@ let test = function(){
         var fst = _.first(ast);
 
         if(equal(fst, s('begin'))){
-            return evalAST(_.rest(ast))
+            return evalAST(_.rest(ast));
         } else if(equal(fst, s('end'))) {
         }
-    }
+        return true;
+    };
     var s = AST.sym;
 
   evalAST(
@@ -38,7 +40,7 @@ let test = function(){
      [[s('lambda'), [s('x')], s('x')],
       100
      ]
-    ])
+    ]);
 }
 
 
@@ -46,7 +48,7 @@ function testLibraryFunctions()
 {
     assert(
         equal(AST.sym('foo'), AST.sym('foo'))
-    )
+    );
 }
 
 // only test the very basics of the data structures
@@ -65,7 +67,7 @@ var TokenTypes = {
 }
 
 function tryMatchRe(str, re) {
-    var match = str.match(re)
+    var match = str.match(re);
     if(match) {
         var matched = match[0];
         var remaining = str.substring(matched.length);
@@ -97,7 +99,7 @@ function read(str) {
 
     while(remainingToRead.length > 0) {
         var matched;
-        if(matched = tryMatchRe(remainingToRead, SPACE_RE)) {
+        if((matched = tryMatchRe(remainingToRead, SPACE_RE))) {
             tokens.push(token(TokenTypes.whitespace,
                               matched.value,
                               line,
@@ -105,7 +107,7 @@ function read(str) {
                              ));
             remainingToRead = matched.remaining;
             col += matched.value.length;
-        } else if(matched = tryMatchRe(remainingToRead, SYMBOL_RE)) {
+        } else if((matched = tryMatchRe(remainingToRead, SYMBOL_RE))) {
             tokens.push(token(TokenTypes.symbol,
                               matched.value,
                               line,
@@ -113,7 +115,7 @@ function read(str) {
                              ));
             remainingToRead = matched.remaining;
             col += matched.value.length;
-        } else if(matched = tryMatchRe(remainingToRead, NUMBER_RE)) {
+        } else if((matched = tryMatchRe(remainingToRead, NUMBER_RE))) {
             tokens.push(token(TokenTypes.number,
                               matched.value,
                               line,
@@ -150,7 +152,7 @@ function read(str) {
             remainingToRead = _.rest(remainingToRead).join('');
             col += 1;
         } else {
-            throw `Parser error, unable to parse starting from: ${remainingToRead}`
+            throw `Parser error, unable to parse starting from: ${remainingToRead}`;
         }
     }
     return tokens;
@@ -160,11 +162,11 @@ function testReader()
 {
 
 
-    var out = read("()")
+    var out = read("()");
 
-    console.log(out)
+    console.log(out);
 }
 
-testLibraryFunctions()
-testASTBits()
-testReaderBits()
+testLibraryFunctions();
+testASTBits();
+testReaderBits();

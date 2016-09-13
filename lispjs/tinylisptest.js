@@ -1,14 +1,14 @@
-var TinyLisp = require("../tinylisp")
+var TinyLisp = require("./tinylisp");
 var AST = TinyLisp.AST;
-var assert = require("assert")
+var assert = require("assert");
 describe('Array', function(){
   describe('#indexOf()', function(){
     it('should return -1 when the value is not present', function(){
       assert.equal(-1, [1,2,3].indexOf(5));
       assert.equal(-1, [1,2,3].indexOf(0));
-    })
-  })
-})
+    });
+  });
+});
 
 
 describe('TinyLisp', function(){
@@ -29,7 +29,7 @@ describe('TinyLisp', function(){
 
     it('parses a number', function(){
       var ast = TinyLisp.read('1');
-      var val = ast.content[0]
+      var val = ast.content[0];
       assert(val instanceof AST.Number);
       assert(val.value == '1');
     });
@@ -105,8 +105,8 @@ describe('TinyLisp', function(){
     });
 
     it('lambdas', function(){
-      var num = TinyLisp.REP('((lambda (x) x) 1)');
-      assert(num == '1');
+      var one = TinyLisp.REP('((lambda (x) x) 1)');
+      assert(one == '1');
 
       var num = TinyLisp.REP('((lambda (x) (add x x)) 1)');
       assert(num == '2');
