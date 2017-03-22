@@ -44,19 +44,6 @@ let test = function(){
 }
 
 
-function testLibraryFunctions()
-{
-    assert(
-        equal(AST.sym('foo'), AST.sym('foo'))
-    );
-}
-
-// only test the very basics of the data structures
-function testASTBits()
-{
-
-}
-
 var TokenTypes = {
     lParen: '(',
     rParen: ')',
@@ -64,7 +51,7 @@ var TokenTypes = {
     newline: 'newline',
     symbol: 'symbol',
     number: 'number'
-}
+};
 
 function tryMatchRe(str, re) {
     var match = str.match(re);
@@ -158,10 +145,19 @@ function read(str) {
     return tokens;
 }
 
-function testReader()
+function testLibraryFunctions()
+{
+    assert(
+        equal(AST.sym('foo'), AST.sym('foo'))
+    );
+}
+
+function testASTBits()
 {
 
+}
 
+function testReaderBits() {
     var out = read("()");
 
     console.log(out);
