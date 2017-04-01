@@ -6,3 +6,6 @@
 #haskell junk
 *.o
 a.out
+
+
+beautiful-racket/compiled
