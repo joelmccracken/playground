@@ -1,7 +1,6 @@
 > module Chapter10 where
 
-
-I actually wrote this at the end of chapter 11, but it belongs here, soooo
+I actually wrote this at the end of chapter 11, but it belongs here, soooo, putting it here for now/as a better organization method
 
 > import Data.Char
 
@@ -13,6 +12,7 @@ I actually wrote this at the end of chapter 11, but it belongs here, soooo
 >     else
 >       shiftChar' shiftNum char 'A' 'Z'
 >   else
+>     -- only shift alphabet characters
 >     char
 >   where
 >     shiftChar' shiftNum char minChar maxChar =
@@ -32,3 +32,15 @@ I actually wrote this at the end of chapter 11, but it belongs here, soooo
 > caesar _ "" = ""
 > caesar num (c:str) =
 >   (shiftChar num c) : caesar num str
+
+Tests for caesar cipher
+
+> test :: IO ()
+> test =
+>   let
+>     testStr = "! foo BarBazz 22 ?"
+>   in
+>     if testStr == caesar (-10) (caesar 10 testStr) then
+>       putStrLn "caesar OK!"
+>     else
+>       putStrLn "caesar error"
