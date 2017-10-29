@@ -1,8 +1,11 @@
-> module Chapter09 where
+> module Chapter09 (test) where
+
+"Ciphers"
 
 I actually wrote this at the end of chapter 11, but it belongs here, soooo, putting it here for now/as a better organization method
 
 > import Data.Char
+> import qualified TestLib
 
 > shiftChar :: Int -> Char -> Char
 > shiftChar shiftNum char =
@@ -35,12 +38,17 @@ I actually wrote this at the end of chapter 11, but it belongs here, soooo, putt
 
 Tests for caesar cipher
 
-> test :: IO ()
-> test =
+> testCaesar :: IO ()
+> testCaesar =
 >   let
 >     testStr = "! foo BarBazz 22 ?"
+>     isCorrect = testStr == caesar (-10) (caesar 10 testStr)
 >   in
->     if testStr == caesar (-10) (caesar 10 testStr) then
->       putStrLn "caesar OK!"
->     else
->       putStrLn "caesar error"
+>     TestLib.testTrue "Caesar Cipher" isCorrect
+
+
+"Writing your own standard functions"
+
+> test :: IO ()
+> test = do
+>   testCaesar

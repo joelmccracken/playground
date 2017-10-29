@@ -1,5 +1,7 @@
 > module Chapter11 where
 
+> import qualified TestLib
+
 Convert Cardinality
 -------------------
 
@@ -90,9 +92,7 @@ Binary Tree
 
 > -- acceptance test for mapTree
 > testMapTree =
->   if mapTree (+1) testTree' == mapExpected
->   then putStrLn "mapTree: yup okay!"
->   else error "mapTree: test failed!"
+>   TestLib.testTrue "mapTree" $ mapTree (+1) testTree' == mapExpected
 
 > preorder :: BinaryTree a -> [a]
 > preorder Leaf = []
@@ -114,10 +114,7 @@ Binary Tree
 
 > testPreorder :: IO ()
 > testPreorder =
->   if preorder testTree == [2, 1, 3] then
->     putStrLn "Preorder fine!"
->   else
->     putStrLn "Bad news bears."
+>   TestLib.testTrue "preorder" $ preorder testTree == [2, 1, 3]
 
 > foldTree :: (a -> b -> b) ->
 >             b ->
@@ -137,24 +134,15 @@ Binary Tree
 
 > testInorder :: IO ()
 > testInorder =
->   if inorder testTree == [1, 2, 3] then
->     putStrLn "Inorder fine!"
->   else
->     putStrLn "Bad news bears."
+>   TestLib.testTrue "inorder" $ inorder testTree == [1, 2, 3]
 
 > testPostorder :: IO ()
 > testPostorder =
->   if postorder testTree == [1, 3, 2] then
->     putStrLn "Postorder fine!"
->   else
->     putStrLn "Bad news bears."
+>   TestLib.testTrue "postorder" $ postorder testTree == [1, 3, 2]
 
 > testFoldTree :: IO ()
 > testFoldTree =
->   if foldTree (+) 0 testTree == 6 then
->     putStrLn "foldTree fine!"
->   else
->     putStrLn "Bad news bears."
+>   TestLib.testTrue "foldTree" $ foldTree (+) 0 testTree == 6
 
 Vigenere Cipeher
 ----------------
