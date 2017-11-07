@@ -1,4 +1,4 @@
-> module Chapter09 (test) where
+> module Chapter09 (test, myWords) where
 
 > import Data.Char
 > import qualified TestLib
@@ -53,6 +53,71 @@ see a way to implement general version, given two typeclasses...
 >   t "eftChar" $ eftChar 'q' 's' == [ 'q', 'r', 's' ]
 >   t "eftChar" $ eftChar 'z' 'z' == [ 'z' ]
 >   t "eftChar" $ eftChar 'p' 'l' == [ ]
+
+
+"Exercises: Thy Fearful Symmetry"
+
+> trimLeadingSpaces = dropWhile (== ' ')
+> firstWord = (takeWhile (/= ' ')) . trimLeadingSpaces
+> remainingString = trimLeadingSpaces . (dropWhile ( /= ' ')) . trimLeadingSpaces
+
+> myWords :: String -> [String]
+> myWords "" = []
+> myWords str =
+>   let
+>     trimLeadingSpaces = dropWhile (== ' ')
+>     firstWord         = (takeWhile (/= ' ')) . trimLeadingSpaces
+>     remainingString   = trimLeadingSpaces . (dropWhile ( /= ' ')) . trimLeadingSpaces
+>     thisWord          = firstWord str
+>   in
+>     if thisWord == "" then
+>       []
+>     else
+>       thisWord : myWords (remainingString str)
+
+> testMyWords = do
+>   t "myWords" $ myWords "     " == []
+>   t "myWords" $ myWords "  hi   " == ["hi"]
+>   t "myWords" $ myWords "  hi   zocoo" == ["hi", "zocoo"]
+
+
+
+> myLines :: String -> [String]
+> myLines "" = []
+> myLines str =
+>   let
+>     trimLeadingLines  = dropWhile (== '\n')
+>     firstLine         = (takeWhile (/= '\n')) . trimLeadingLines
+>     remainingString   = trimLeadingLines . (dropWhile ( /= '\n')) . trimLeadingLines
+>     thisLine          = firstLine str
+>   in
+>     if thisLine == "" then
+>       []
+>     else
+>       thisLine : myLines (remainingString str)
+
+> testMyLines = do
+>   t "myLines" $ myLines " \n " == [" ", " "]
+>   t "myLines" $ myLines "\n\nhi\n" == ["hi"]
+>   t "myLines" $ myLines "\n\nhi\n\nzocoo" == ["hi", "zocoo"]
+
+> mySplitAt :: (a -> Bool) -> [a] -> [[a]]
+> mySplitAt _ [] = []
+> mySplitAt isSplitPoint str =
+>   let
+>     trimLeadingSplitPoints  = dropWhile isSplitPoint
+>     firstGroup              = (takeWhile (not . isSplitPoint)) . trimLeadingSplitPoints
+>     remainingString         = (dropWhile (not . isSplitPoint)) . trimLeadingSplitPoints
+>     thisGroup               = firstGroup str
+>   in
+>     if length thisGroup == 0 then
+>       []
+>     else
+>       thisGroup : mySplitAt isSplitPoint (remainingString str)
+
+> testMySplitAt = do
+>   t "mySplitAt" $ mySplitAt (== ' ') " \n " == ["\n"]
+>   t "mySplitAt" $ mySplitAt (== ' ') "face \nx " == ["face", "\nx"]
 
 
 "Ciphers"
@@ -204,6 +269,9 @@ Tests for caesar cipher
 >   testEftOrd
 >   testEftInt
 >   testEftChar
+>   testMyWords
+>   testMyLines
+>   testMySplitAt
 >   testCaesar
 >   testMyOr
 >   testMyAny
