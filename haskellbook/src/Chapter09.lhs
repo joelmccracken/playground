@@ -1,4 +1,4 @@
-> module Chapter09 (test, myWords) where
+> module Chapter09 where
 
 > import Data.Char
 > import qualified TestLib
@@ -118,6 +118,37 @@ see a way to implement general version, given two typeclasses...
 > testMySplitAt = do
 >   t "mySplitAt" $ mySplitAt (== ' ') " \n " == ["\n"]
 >   t "mySplitAt" $ mySplitAt (== ' ') "face \nx " == ["face", "\nx"]
+
+
+
+"comprehend thy lists"
+
+first one is all even squares till 100
+
+second one is list tuples (x,y),
+ordered numerically least to greatest first by x and then by y.
+on tuple for each: x's are perfect squares <50, y's are perfect squares s.t. 50 < y <= 100
+
+third is the first 5 elements of the previous list; enumerated, that would be:
+[(1,64), (1,81), (1,100), (4, 64), (4, 81)]
+
+
+"Square Cube"
+
+> mySqr = [x^2 | x <- [1..5]]
+> myCube = [y^3 | y <- [1..5]]
+
+
+> someTuples = [(x,y) | x <- mySqr, y <- myCube]
+> someTuplesMaxed = [(x,y) | x <- mySqr, y <- myCube, x < 50, y < 50]
+> someTuplesMaxedLen = length someTuplesMaxed
+
+> testSquaresAndCubes = do
+>   t "someTuplesMaxed" $ someTuplesMaxed == [(1,1), (1,8), (1, 27),
+>                                             (4,1), (4,8), (4, 27),
+>                                             (9,1), (9,8), (9, 27),
+>                                             (16,1), (16,8), (16, 27),
+>                                             (25,1), (25,8), (25, 27)]
 
 
 "Ciphers"
@@ -272,6 +303,7 @@ Tests for caesar cipher
 >   testMyWords
 >   testMyLines
 >   testMySplitAt
+>   testSquaresAndCubes
 >   testCaesar
 >   testMyOr
 >   testMyAny
