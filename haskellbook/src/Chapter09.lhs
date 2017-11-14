@@ -151,6 +151,32 @@ third is the first 5 elements of the previous list; enumerated, that would be:
 >                                             (25,1), (25,8), (25, 27)]
 
 
+
+1. [x^y | x <- [1..5], y <- [2, undefined]] == bottom
+2. take 1 $ [x^y | x <- [1..5], y <- [2, undefined]] == [1]
+3. sum [1, undefined, 3] == bottom
+4. length [1, 2, undefined] == 3
+5. length $ [1, 2, 3] ++ undefined == bottom
+6. take 1 $ filter even [1, 2, 3, undefined] == [2]
+7. take 1 $ filter even [1, 3, undefined] == bottom
+8. take 1 $ filter odd [1, 3, undefined] == [1]
+9. take 2 $ filter odd [1, 3, undefined] == [1,3]
+10. take 3 $ filter odd [1, 3, undefined] == bottom
+
+
+
+intermission: is it normal form?
+
+not sure about these:
+
+1. nf
+2. whnf
+3. neither
+4. neither
+5. neither
+6. whnf
+7. whnf
+
 "Ciphers"
 
 I actually wrote this at the end of chapter 11, but it belongs here, soooo, putting it here for now/as a better organization method
