@@ -2,6 +2,7 @@
 
 > import Data.Char
 > import qualified TestLib
+> import Data.Bool (bool)
 
 > t str = TestLib.testTrue ("Chapter09: " ++ str)
 
@@ -177,6 +178,43 @@ not sure about these:
 6. whnf
 7. whnf
 
+
+
+"Exercises: More bottoms"
+
+1. take 1 $ map (+1) [undefined, 2, 3] == bottom
+2. take 1 $ map (+1) [1, undefined, 3] == [2]
+3. take 2 $ map (+1) [1, undefined, 3] == bottom
+4. `itIsMystery xs = map (\x -> elem x "aeiou") xs`
+   it tells you which characters are vowels, returning a list of booleans, True for vowels and False for consonants.
+5. a. [1,4,9,16,25,36,49,64,81,100]
+   b. [1, 10, 20]
+   c. [15, 15, 15]
+6. below:
+
+> foldBoolReplacement = map (\x->bool (-x) x (x /= 3)) [1..10]
+> testFoldBoolReplacement = do
+>   t "foldBoolReplacement" $ foldBoolReplacement == [1,2,-3,4,5,6,7,8,9,10]
+
+
+"Exercises: Filtering"
+
+1.
+
+> multiplesOfThreeTill = filter ((== 0) . ((flip rem) 3))
+> testMultiplesOfThree = t "multiplesOfThreeTill" $ multiplesOfThreeTill [1..30] == [3,6,9,12,15,18,21,24,27,30]
+
+2. `length . multiplesOfThreeTill` (is there more to this?? I just rewrote the above to at least make the list of integers variable)
+3.
+
+> articles = ["a", "an", "the"]
+> nonArticles :: String -> [String]
+> nonArticles = filter (not . ((flip elem) articles)) . myWords
+> testNonArticles = t "nonArticles" $ nonArticles "the brown dog was a goof" == ["brown","dog","was","goof"]
+
+
+""
+
 "Ciphers"
 
 I actually wrote this at the end of chapter 11, but it belongs here, soooo, putting it here for now/as a better organization method
@@ -330,6 +368,9 @@ Tests for caesar cipher
 >   testMyLines
 >   testMySplitAt
 >   testSquaresAndCubes
+>   testFoldBoolReplacement
+>   testMultiplesOfThree
+>   testNonArticles
 >   testCaesar
 >   testMyOr
 >   testMyAny
