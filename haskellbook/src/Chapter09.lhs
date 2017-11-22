@@ -213,7 +213,78 @@ not sure about these:
 > testNonArticles = t "nonArticles" $ nonArticles "the brown dog was a goof" == ["brown","dog","was","goof"]
 
 
-""
+"Zipping exercises"
+
+> myZip :: [a] -> [b] -> [(a,b)]
+> myZip [] _ = []
+> myZip _ [] = []
+> myZip (a:as) (b:bs) = (a,b) : myZip as bs
+
+> testMyZip = do
+>   t "myZip_" $ myZip [1,2,3] ['a','b'] == [(1,'a'), (2,'b')]
+>   t "myZip" $ myZip [1,2,3] ['a','b'] == zip [1,2,3] ['a', 'b']
+>   t "myZip 2" $ (myZip [] ['a','b']) == (zip [] ['a', 'b'] :: [((), Char)])
+
+> myZipWith :: (a->b->c) -> [a] -> [b] -> [c]
+> myZipWith _ [] _ = []
+> myZipWith _ _ [] = []
+> myZipWith f (a:as) (b:bs) = (f a b) : myZipWith f as bs
+
+> testMyZipWith = do
+>   t "myZipWith_" $ myZipWith (,) [1,2,3] ['a','b'] == [(1,'a'), (2,'b')]
+>   t "myZipWith" $ myZipWith (,) [1,2,3] ['a','b'] == zipWith (,) [1,2,3] ['a', 'b']
+>   t "myZipWith 2" $ (myZipWith (,) [] ['a','b']) == (zipWith (,) [] ['a', 'b'] :: [((), Char)])
+
+
+... and I just implemented Zip in terms of zipWith, above.
+
+
+"Chapter Exercises/Data.Char"
+
+
+
+
+1.
+Prelude> import Data.Char
+Prelude Data.Char> :t isUpper
+isUpper :: Char -> Bool
+Prelude Data.Char> :t toUpper
+toUpper :: Char -> Char
+
+2.
+
+> onlyUppers = filter isUpper
+> testOnlyUppers = t "onlyUppers" $ onlyUppers "HbEfLrLxO" == "HELLO"
+
+3.
+
+> capitalize "" = ""
+> capitalize (x:xs) = (toUpper x):xs
+> testCapitalize = t "capitalize" $ capitalize "julie" == "Julie"
+
+4.
+
+> capitalizeAll "" = ""
+> capitalizeAll (x:xs) = (toUpper x):capitalizeAll xs
+> testCapitalizeAll = t "capitalizeAll" $ capitalizeAll "woot" == "WOOT"
+
+5.
+
+> headUpper "" = undefined
+> headUpper xs = (toUpper $ head xs)
+> testHeadUpper = t "headUpper" $ headUpper "woot" == 'W'
+
+6.
+
+> headUpper2 :: String -> Char
+> headUpper2 (x:_) = toUpper x
+
+> headUpper3 :: String -> Char
+> headUpper3 = toUpper . head
+
+> testOthers = do
+>   t "headUpper2" $ 'W' == headUpper2 "woot"
+>   t "headUpper3" $ headUpper3 "woot" == 'W'
 
 "Ciphers"
 
@@ -304,7 +375,6 @@ Tests for caesar cipher
 > testMyReverse = do
 >   t "myReverse" $ myReverse [1..5] == [5,4,3,2,1]
 
-
 > squish :: [[a]] -> [a]
 > squish [] = []
 > squish (x:[]) = x
@@ -350,8 +420,6 @@ Tests for caesar cipher
 > testMyMinimumBy = do
 >   t "myMinimumBy" $ myMinimumBy compare [1, 53, 9001, 10] == 1
 
-
-
 > myMaximum :: (Ord a) => [a] -> a
 > myMaximum = myMaximumBy compare
 
@@ -371,6 +439,13 @@ Tests for caesar cipher
 >   testFoldBoolReplacement
 >   testMultiplesOfThree
 >   testNonArticles
+>   testMyZip
+>   testMyZipWith
+>   testOnlyUppers
+>   testCapitalize
+>   testCapitalizeAll
+>   testHeadUpper
+>   testOthers
 >   testCaesar
 >   testMyOr
 >   testMyAny
