@@ -135,9 +135,7 @@ testMyOr = do
   t "myOr2" $ myOr [False] == False
 
 myAny :: (a -> Bool) -> [a] -> Bool
-myAny g xs = foldr folding False xs
-  where
-    folding x y = g x || y
+myAny g = foldr ((||) . g) False
 
 testMyAny = do
   t "myAny"  $ myAny even [1,3,5] == False
