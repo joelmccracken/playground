@@ -111,6 +111,20 @@ avgDb db =
 
 testAvgDb = t "avgDb" $ avgDb theDatabase == 4510.5
 
+-- scans
+
+fibs = 1 : scanl (+) 1 fibs
+
+fibs20 = take 20 fibs
+
+testFibs20 = t "fibs20" $ fibs20 == [1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181,6765]
+
+fibsUnder100 = takeWhile (<100) fibs
+
+testfibsUnder100 = t "fibsUnder100" $ fibsUnder100 == [1,1,2,3,5,8,13,21,34,55,89]
+
+facsScan = scanl (*) 1 [2..]
+testFacsScan  = t "facsScan" $ take 5 facsScan == [1,2,6,24,120]
 test = do
   testUnderstaindFoldLR
   testFilterDbDate
@@ -118,3 +132,6 @@ test = do
   testMostRecent
   testSumDb
   testAvgDb
+  testFibs20
+  testfibsUnder100
+  testFacsScan
