@@ -1,6 +1,7 @@
 module Chapter10 where
 
 import qualified TestLib
+import Data.Time
 
 t str = TestLib.testTrue ("Chapter10: " ++ str)
 
@@ -37,5 +38,83 @@ exercises: understanding folds
 
 
 
+-- Exercises: Database Processing
+
+data DatabaseItem a = DbString String
+                    | DbNumber a
+                    | DbDate   UTCTime
+   deriving (Eq, Ord, Show)
+
+dbTime1 = (UTCTime
+            (fromGregorian 1931 5 1)
+            (secondsToDiffTime 34123))
+
+dbTime2 = (UTCTime
+             (fromGregorian 1921 5 1)
+             (secondsToDiffTime 34123))
+
+theDatabase :: Num a => [DatabaseItem a]
+theDatabase =
+  [ DbDate dbTime1
+  , DbNumber 9001
+  , DbString "Hello, world!"
+  , DbDate dbTime2
+  , DbNumber 20
+  ]
+
+-- 1
+
+filterDbDate :: [DatabaseItem a] -> [UTCTime]
+filterDbDate = foldr onlyDates []
+  where
+    onlyDates :: DatabaseItem a -> [UTCTime] -> [UTCTime]
+    onlyDates (DbDate date) dates = date : dates
+    onlyDates _ dates = dates
+
+testFilterDbDate = t "filterDbDate" $ filterDbDate theDatabase == [dbTime1, dbTime2]
+
+-- 2
+
+filterDbNumber :: Num a => [DatabaseItem a] -> [a]
+filterDbNumber = foldr onlyNumbers []
+  where
+    onlyNumbers :: Num a => DatabaseItem a -> [a] -> [a]
+    onlyNumbers (DbNumber number) numbers = number : numbers
+    onlyNumbers _ numbers = numbers
+
+testFilterDbNumber = t "filterDbNumber" $ filterDbNumber theDatabase == [9001, 20]
+
+-- 3
+
+mostRecent :: [DatabaseItem a] -> UTCTime
+mostRecent = maximum . filterDbDate
+
+testMostRecent = t "mostRecent" $ mostRecent theDatabase == dbTime1
+
+-- 4
+
+sumDb :: Num a => [DatabaseItem a] -> a
+sumDb = sum . filterDbNumber
+
+testSumDb = t "sumDb" $ sumDb theDatabase == 9021
+
+-- 5
+
+avgDb :: (Integral a, Fractional b) => [DatabaseItem a] -> b
+avgDb db =
+  let
+    onlyNums = map fromIntegral $ filterDbNumber db
+    numsTotal = sum onlyNums
+    numNums = (fromIntegral . length) onlyNums
+  in
+    numsTotal / numNums
+
+testAvgDb = t "avgDb" $ avgDb theDatabase == 4510.5
+
 test = do
   testUnderstaindFoldLR
+  testFilterDbDate
+  testFilterDbNumber
+  testMostRecent
+  testSumDb
+  testAvgDb
