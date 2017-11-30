@@ -125,6 +125,25 @@ testfibsUnder100 = t "fibsUnder100" $ fibsUnder100 == [1,1,2,3,5,8,13,21,34,55,8
 
 facsScan = scanl (*) 1 [2..]
 testFacsScan  = t "facsScan" $ take 5 facsScan == [1,2,6,24,120]
+
+-- standard functions with folds
+
+myOr :: [Bool] -> Bool
+myOr = foldr (||) False
+testMyOr = do
+  t "myOr" $ myOr [False, True] == True
+  t "myOr2" $ myOr [False] == False
+
+myAny :: (a -> Bool) -> [a] -> Bool
+myAny g xs = foldr folding False xs
+  where
+    folding x y = g x || y
+
+testMyAny = do
+  t "myAny"  $ myAny even [1,3,5] == False
+  t "myAny2" $ myAny odd [1,3,5] == True
+
+
 test = do
   testUnderstaindFoldLR
   testFilterDbDate
@@ -135,3 +154,5 @@ test = do
   testFibs20
   testfibsUnder100
   testFacsScan
+  testMyOr
+  testMyAny
