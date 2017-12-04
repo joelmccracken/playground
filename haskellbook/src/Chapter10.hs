@@ -2,6 +2,9 @@ module Chapter10 where
 
 import qualified TestLib
 import Data.Time
+import Data.Bool
+import Control.Monad
+
 
 t str = TestLib.testTrue ("Chapter10: " ++ str)
 
@@ -142,6 +145,79 @@ testMyAny = do
   t "myAny2" $ myAny odd [1,3,5] == True
 
 
+myElem :: Eq a => a -> [a] -> Bool
+myElem x = foldr ((||) . (==x)) False
+
+myElem2 :: Eq a => a -> [a] -> Bool
+myElem2 = myAny . (==)
+
+testMyElem = do
+  t "myElem False"  $ myElem 4 [1,3,5] == False
+  t "myElem True" $ myElem 3 [1,3,5] == True
+  t "myElem2 False"  $ myElem2 4 [1,3,5] == False
+  t "myElem2 True" $ myElem2 3 [1,3,5] == True
+
+myReverse :: [a] -> [a]
+myReverse = foldr ((flip (++)) . (:[])) []
+testMyReverse = do
+  t "myReverse" $ myReverse [1..5] == [5,4,3,2,1]
+
+myMap :: (a -> b) -> [a] -> [b]
+myMap = (flip foldr) [] . ((:) .)
+
+testMyMap = do
+  t "myMap" $ myMap (+1) [4, 6, 8] == [5,7,9]
+
+myFilter :: (a -> Bool) -> [a] -> [a]
+myFilter = (flip foldr) [] . (ap (bool id . (:)))
+
+testMyFilter = do
+  t "myFilter" $ myFilter even [4, 5, 8] == [4,8]
+
+squish :: [[a]] -> [a]
+squish = foldr (++) []
+
+testSquish = do
+  t "squish" $ squish [[4, 5], [8]] == [4,5,8]
+
+squishMap :: (a -> [b]) -> [a] -> [b]
+squishMap = (flip foldr) [] . ((++) .)
+
+testSquishMap = do
+  t "squishMap" $ squishMap (\x->[1,x] :: [Integer]) [4, 5, 8] == [1,4,1,5,1,8]
+
+squishAgain :: [[a]] -> [a]
+squishAgain = squishMap id
+
+testSquishAgain = do
+  t "squishAgain" $ squishAgain [[4, 5], [8]] == [4,5,8]
+
+maxBy f x y =
+  case f x y of
+    GT -> x
+    _  -> y
+
+myMaximumBy :: (a -> a -> Ordering) -> [a] -> a
+myMaximumBy f (x:xs) = foldl (maxBy f) x xs
+
+testMyMaximumBy = do
+  t "myMaximumBy 1" $ myMaximumBy (\_ _ -> GT) [1..10]  == 1
+  t "myMaximumBy 2" $ myMaximumBy (\_ _ -> LT) [1..10] == 10
+  t "myMaximumBy 3" $ myMaximumBy compare [1..10] == 10
+
+minBy f x y =
+  bool x y ((maxBy f x y) == x)
+
+myMinimumBy :: Eq a => (a -> a -> Ordering) -> [a] -> a
+myMinimumBy f (x:xs) = foldl (minBy f) x xs
+
+testMyMinimumBy = do
+  t "myMinimumBy 1" $ myMinimumBy (\_ _ -> GT) [1..10]  == 10
+  t "myMinimumBy 2" $ myMinimumBy (\_ _ -> LT) [1..10] == 1
+  t "myMinimumBy 3" $ myMinimumBy compare [1..10] == 1
+
+
+
 test = do
   testUnderstaindFoldLR
   testFilterDbDate
@@ -154,3 +230,12 @@ test = do
   testFacsScan
   testMyOr
   testMyAny
+  testMyElem
+  testMyReverse
+  testMyMap
+  testMyFilter
+  testSquish
+  testSquishMap
+  testSquishAgain
+  testMyMaximumBy
+  testMyMinimumBy
