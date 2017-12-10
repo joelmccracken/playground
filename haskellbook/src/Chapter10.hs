@@ -192,13 +192,13 @@ squishAgain = squishMap id
 testSquishAgain = do
   t "squishAgain" $ squishAgain [[4, 5], [8]] == [4,5,8]
 
-maxBy f x y =
-  case f x y of
-    GT -> x
-    _  -> y
+maxBy :: (a -> a -> Ordering) -> a -> a -> a
+maxBy = (ap (ap . (flip bool))) . (((GT ==) .) .)
 
 myMaximumBy :: (a -> a -> Ordering) -> [a] -> a
-myMaximumBy f (x:xs) = foldl (maxBy f) x xs
+myMaximumBy =
+  (.) ((flip ap) id)
+      ((flip (.)) head) . (foldl . (ap (ap . (flip bool))) . (((GT ==) .) .))
 
 testMyMaximumBy = do
   t "myMaximumBy 1" $ myMaximumBy (\_ _ -> GT) [1..10]  == 1
