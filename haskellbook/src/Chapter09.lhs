@@ -303,16 +303,21 @@ I actually wrote this at the end of chapter 11, but it belongs here, soooo, putt
 >   where
 >     shiftChar' shiftNum char minChar maxChar =
 >       let
->         ordA        = ord minChar
->         ordZ        = ord maxChar
->         ordChar     = ord char
->         charOffset  = ordChar - ordA
->         -- max offset neeeds to be one more; otheriwse final z wraps to a, unintentionally.
->         maxOffset   = 1 + ordZ - ordA
->         shiftedOffset = (mod (charOffset + shiftNum) maxOffset)
->         charOrdShifted = ordA + shiftedOffset
+>         minNum        = ord minChar
+>         maxNum        = ord maxChar
+>         thisNum       = ord char
 >       in
->         chr charOrdShifted
+>         chr $ shiftByInRange minNum maxNum shiftNum thisNum
+
+> shiftByInRange :: Int -> Int -> Int -> Int -> Int
+> shiftByInRange minNum maxNum shiftBy numToShift =
+>   let
+>      numOffset     = numToShift - minNum
+>      -- max offset neeeds to be one more; otheriwse final z wraps to a, unintentionally.
+>      maxOffset     = 1 + maxNum - minNum
+>      shiftedOffset = (mod (numOffset + shiftBy) maxOffset)
+>   in
+>     minNum + shiftedOffset
 
 > caesar :: Int -> String -> String
 > caesar _ "" = ""
