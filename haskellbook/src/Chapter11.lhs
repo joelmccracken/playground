@@ -3,6 +3,8 @@
 > module Chapter11 where
 
 > import qualified TestLib
+> import qualified Chapter09 as C9
+> import Data.Char
 
 > t str = TestLib.testTrue ("Chapter11: " ++ str)
 
@@ -495,6 +497,42 @@ chapter exercises:
 Vigenere Cipeher
 ----------------
 
+> calculateOffset :: Char -> Int
+> calculateOffset c =
+>   if isAlpha c then
+>     if isLower c then
+>       ord c - ord 'a'
+>     else
+>       ord c - ord 'A'
+>   else
+>     0
+
+> calculateOffsets :: String -> [Int]
+> calculateOffsets "" = []
+> calculateOffsets (c:cs) =
+>   (calculateOffset c) : calculateOffsets cs
+
+> testCalculateOffsets = do
+>   t "calculateOffsets" $ calculateOffsets "AbBa" == [0,1,1,0]
+
+> vigenere :: String -> String -> String
+> vigenere = (vigenere' id)
+
+> unVigenere :: String -> String -> String
+> unVigenere = (vigenere' (*(-1)))
+
+> vigenere' :: (Int -> Int) -> String -> String -> String
+> vigenere' modifier cipherText message =
+>   let
+>     offsets :: [Int]
+>     offsets = calculateOffsets cipherText ++ offsets
+>   in
+>     map (uncurry C9.shiftChar) $ zip (map modifier offsets) message
+
+> testVigenere = do
+>   t "vigenere" $ vigenere "ALLY" "meetatdawn" == "mppraeoywy"
+>   t "vigenere2" $ "AZFOOza" == (unVigenere "ALLY" $ vigenere "ALLY" "AZFOOza")
+
 > runTests :: IO ()
 > runTests = do
 >   testLogicGoats1
@@ -505,3 +543,5 @@ Vigenere Cipeher
 >   testInorder
 >   testPostorder
 >   testFoldTree
+>   testCalculateOffsets
+>   testVigenere
