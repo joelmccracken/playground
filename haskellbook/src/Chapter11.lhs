@@ -533,6 +533,20 @@ Vigenere Cipeher
 >   t "vigenere" $ vigenere "ALLY" "meetatdawn" == "mppraeoywy"
 >   t "vigenere2" $ "AZFOOza" == (unVigenere "ALLY" $ vigenere "ALLY" "AZFOOza")
 
+as patterns exercises
+
+> isSubseqOf :: (Eq a) => [a] -> [a] -> Bool
+> isSubseqOf [] _ = True
+> isSubseqOf _ [] = False
+> isSubseqOf as@(a:aa) bs@(b:bb)
+>     | a == b = isSubseqOf aa bb
+>     | otherwise = isSubseqOf as bb
+
+> testIsSubseqOf = do
+>   t "subseq"  $ isSubseqOf "blah" "wboloath"
+>   t "subseq2" $ not $ isSubseqOf "blah" "halbwoot"
+>   t "subseq3" $ not $ isSubseqOf "blah" "wootbla"
+
 > runTests :: IO ()
 > runTests = do
 >   testLogicGoats1
@@ -545,3 +559,4 @@ Vigenere Cipeher
 >   testFoldTree
 >   testCalculateOffsets
 >   testVigenere
+>   testIsSubseqOf
