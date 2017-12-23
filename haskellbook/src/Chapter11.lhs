@@ -339,6 +339,8 @@ Exercise: programmers
 >   (map (flip map allLanguages)
 >        (map Programmer allOperatingSystems))
 
+> testAllProgrammers = t "allProgrammers" $ 16 == length allProgrammers
+
 ------------------------------------------------------------------------------------------
 Convert Cardinality
 -------------------
@@ -482,15 +484,24 @@ Binary Tree
 > testFoldTree =
 >   TestLib.testTrue "foldTree" $ foldTree (+) 0 testTree == 6
 
+
+chapter exercises:
+
+1. a
+2. c
+3. b
+4. c
+
 Vigenere Cipeher
 ----------------
 
 > runTests :: IO ()
 > runTests = do
->   Chapter11.testLogicGoats1
->   Chapter11.testLogicGoats2
->   Chapter11.testMapTree
->   Chapter11.testPreorder
->   Chapter11.testInorder
->   Chapter11.testPostorder
->   Chapter11.testFoldTree
+>   testLogicGoats1
+>   testLogicGoats2
+>   testAllProgrammers
+>   testMapTree
+>   testPreorder
+>   testInorder
+>   testPostorder
+>   testFoldTree
