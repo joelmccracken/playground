@@ -548,6 +548,34 @@ as patterns exercises
 >   t "subseq3" $ not $ isSubseqOf ("blah" :: String) "wootbla"
 
 
+> capitalizeWords :: String -> [(String, String)]
+> capitalizeWords = map capPair . C9.myWords
+>   where capPair xs@(x:xx) = (xs, toUpper x : xx)
+
+> testCapitalizeWords =
+>   t "tcw" $ capitalizeWords "hello world" == [("hello", "Hello"), ("world", "World")]
+
+
+> capitalizeWord :: String -> String
+> capitalizeWord "" = ""
+> capitalizeWord (x:xs) = toUpper x : xs
+
+> testCapitalizeWord = do
+>   t "capitalizeword" $ capitalizeWord "Chortle" == "Chortle"
+>   t "capword" $ capitalizeWord "chortle" == "Chortle"
+
+> capitalizeParagraph :: String -> String
+> capitalizeParagraph "" = ""
+> capitalizeParagraph all@(x:xs)
+>   | x == ' ' = x : capitalizeParagraph xs
+>   | x == '.' = x : capitalizeParagraph xs
+>   | otherwise = capitalizeWord thisSentence ++ capitalizeParagraph remaining
+>      where thisSentence = (takeWhile (/= '.') all)
+>            remaining    = (dropWhile (/= '.') all)
+
+
+> testCapitalizeParagraph = t "cappara" $ "Blah. Woot ha." == capitalizeParagraph "blah. woot ha."
+
 > runTests :: IO ()
 > runTests = do
 >   testLogicGoats1
@@ -561,3 +589,6 @@ as patterns exercises
 >   testCalculateOffsets
 >   testVigenere
 >   testIsSubseqOf
+>   testCapitalizeWords
+>   testCapitalizeWord
+>   testCapitalizeParagraph
