@@ -543,9 +543,10 @@ as patterns exercises
 >     | otherwise = isSubseqOf as bb
 
 > testIsSubseqOf = do
->   t "subseq"  $ isSubseqOf "blah" "wboloath"
->   t "subseq2" $ not $ isSubseqOf "blah" "halbwoot"
->   t "subseq3" $ not $ isSubseqOf "blah" "wootbla"
+>   t "subseq"  $ isSubseqOf ("blah" :: String) "wboloath"
+>   t "subseq2" $ not $ isSubseqOf ("blah" :: String) "halbwoot"
+>   t "subseq3" $ not $ isSubseqOf ("blah" :: String) "wootbla"
+
 
 > runTests :: IO ()
 > runTests = do
