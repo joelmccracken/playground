@@ -573,7 +573,6 @@ as patterns exercises
 >      where thisSentence = (takeWhile (/= '.') all)
 >            remaining    = (dropWhile (/= '.') all)
 
-
 > testCapitalizeParagraph = t "cappara" $ "Blah. Woot ha." == capitalizeParagraph "blah. woot ha."
 
 > runTests :: IO ()
