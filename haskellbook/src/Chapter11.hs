@@ -1,10 +1,14 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TupleSections #-}
+
 module Chapter11 where
 
 import qualified TestLib
 import qualified Chapter09 as C9
 import Data.Char
+import Data.List
+import Data.Maybe
 
 t str = TestLib.testTrue ("Chapter11: " ++ str)
 
@@ -574,6 +578,86 @@ capitalizeParagraph all@(x:xs)
            remaining    = (dropWhile (/= '.') all)
 
 testCapitalizeParagraph = t "cappara" $ "Blah. Woot ha." == capitalizeParagraph "blah. woot ha."
+
+
+-- Phone exercise
+-- 1.
+
+
+type ButtonConfig = (Digit, String)
+
+type DaPhone = [ButtonConfig]
+
+daPhone :: DaPhone
+daPhone =
+  [ ('1', "")
+  , ('2', "abc")
+  , ('3', "def")
+  , ('4', "ghi")
+  , ('5', "jkl")
+  , ('6', "mno")
+  , ('7', "pqrs")
+  , ('8', "tuv")
+  , ('9', "wxyz")
+  , ('*', "")
+  , ('0', " ")
+  , ('#', ".,")
+  ]
+
+-- 2.
+
+type ButtonPresses = (Digit, Presses)
+
+convo :: [String]
+convo =
+  ["Wanna play 20 questions",
+   "Ya",
+   "U 1st haha",
+   "Lol ok. Have u ever tasted alcohol",
+   "Lol ya",
+   "Wow ur cool haha. Ur turn",
+   "Ok. Do u think I am pretty Lol",
+   "Lol ya",
+   "Just making sure rofl ur turn"]
+
+-- validButtons = "1234567890*#"
+type Digit = Char
+
+-- Valid presses: 1 and up
+type Presses = Int
+
+
+findButton :: Char
+           -> Maybe ButtonConfig
+findButton char =
+  find checkElem daPhone
+  where
+    checkElem (digit,chars) =
+      elem char (digit : chars)
+
+
+reverseTaps :: Char
+            -> [ButtonPresses]
+reverseTaps char =
+  fromMaybe [] $ ((findButton lChar) >>= necessaryPresses)
+    where
+      lChar = toLower char
+      toPresses :: ButtonConfig -> Maybe [ButtonPresses]
+      toPresses (digit, moreChars)
+        | digit == lChar = Just [(digit, length moreChars + 1)]
+        | otherwise      = elemIndex lChar moreChars >>= toButtonPresses digit
+      toButtonPresses digit num = Just [(digit, (num +1))]
+      maybeAddUpper :: [ButtonPresses] -> [ButtonPresses]
+      maybeAddUpper buttonPresses
+        | isUpper char = ('*', 1) : buttonPresses
+        | otherwise    = buttonPresses
+      necessaryPresses button = fmap maybeAddUpper $ toPresses button
+
+
+cellPhonesDead :: String
+               -> [ButtonPresses]
+cellPhonesDead = (>>= reverseTaps)
+
 
 runTests :: IO ()
 runTests = do
