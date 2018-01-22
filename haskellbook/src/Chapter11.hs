@@ -1,6 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TupleSections #-}
 
 module Chapter11 where
 
@@ -626,7 +624,6 @@ type Digit = Char
 -- Valid presses: 1 and up
 type Presses = Int
 
-
 findButton :: Char
            -> Maybe ButtonConfig
 findButton char =
@@ -635,6 +632,9 @@ findButton char =
     checkElem (digit,chars) =
       elem char (digit : chars)
 
+charsAvailable :: ButtonConfig -> String
+charsAvailable (digit, chars) =
+  chars ++ [digit]
 
 reverseTaps :: Char
             -> [ButtonPresses]
@@ -642,22 +642,81 @@ reverseTaps char =
   fromMaybe [] $ ((findButton lChar) >>= necessaryPresses)
     where
       lChar = toLower char
-      toPresses :: ButtonConfig -> Maybe [ButtonPresses]
-      toPresses (digit, moreChars)
-        | digit == lChar = Just [(digit, length moreChars + 1)]
-        | otherwise      = elemIndex lChar moreChars >>= toButtonPresses digit
-      toButtonPresses digit num = Just [(digit, (num +1))]
+
       maybeAddUpper :: [ButtonPresses] -> [ButtonPresses]
       maybeAddUpper buttonPresses
         | isUpper char = ('*', 1) : buttonPresses
         | otherwise    = buttonPresses
-      necessaryPresses button = fmap maybeAddUpper $ toPresses button
 
+      necessaryPresses button = maybeAddUpper <$> (: []) <$> toPresses button lChar
+
+toPresses :: ButtonConfig -> Char -> Maybe ButtonPresses
+toPresses config@(digit, _) char =
+  Just (digit, toPressesCount config char)
+
+toPressesCount :: ButtonConfig -> Char -> Presses
+toPressesCount config@(digit, _) char =
+  fromMaybe (-100) $ (+1) <$> (elemIndex (toLower char) (charsAvailable config))
 
 cellPhonesDead :: String
                -> [ButtonPresses]
 cellPhonesDead = (>>= reverseTaps)
 
+testCellPhonesDead =
+  t "cellPhone" $ (take 7 $ cellPhonesDead (head convo)) == [('*',1),('9',1),('2',1),('6',2),('6',2),('2',1),('0',1)]
+
+-- 3.
+
+fingerTaps :: [(Digit, Presses)] -> Presses
+fingerTaps = foldr ((+) . snd ) 0
+
+testFingerTaps =
+  t "fintaps" $ fingerTaps (take 7 $ cellPhonesDead (head convo)) == 9
+
+-- 4.
+
+mostPopularLetter :: String -> Char
+mostPopularLetter = mostFrequent
+
+mostFrequent :: Eq a => [a] -> a
+mostFrequent xs =
+  fst $ C9.myMaximumBy compareCounts freq
+  where
+    freq = frequency [] xs
+    compareCounts a b = compare (snd a) (snd b)
+
+frequency :: Eq a => [(a, Int)] -> [a] -> [(a,Int)]
+frequency counts [] = counts
+frequency counts (a:as) = frequency (incFreq a counts) as
+  where
+    incFreq char [] = [(char, 1)]
+    incFreq char ((c, num) : frequencies)
+      | char == c = (c, num + 1) : frequencies
+      | otherwise = (c, num) : incFreq char frequencies
+
+testMostPopularLetter =
+  t "mpl" $ fmap mostPopularLetter convo == " aa a  a "
+
+calcCost :: Char -> Presses
+calcCost char = fromMaybe (-1000) $ flip toPressesCount char <$> findButton char
+
+testCosts =
+  t "costs" $ fmap (calcCost . mostPopularLetter) convo == [1,1,1,1,1,1,1,1,1]
+
+-- 5.
+
+coolestLtr :: [String] -> Char
+coolestLtr convo = mostPopularLetter $ concat convo
+
+testCoolestLtr =
+  t "cltr" $ coolestLtr convo == ' '
+
+coolestWord :: [String] -> String
+coolestWord convo =
+  mostFrequent $ C9.myWords $ concat $ intersperse " " convo
+
+testCoolestWord =
+  t "cword" $ coolestWord convo == "Lol"
 
 runTests :: IO ()
 runTests = do
@@ -675,3 +734,9 @@ runTests = do
   testCapitalizeWords
   testCapitalizeWord
   testCapitalizeParagraph
+  testCellPhonesDead
+  testFingerTaps
+  testMostPopularLetter
+  testCosts
+  testCoolestLtr
+  testCoolestWord
