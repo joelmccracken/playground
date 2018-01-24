@@ -718,6 +718,35 @@ coolestWord convo =
 testCoolestWord =
   t "cword" $ coolestWord convo == "Lol"
 
+
+-- hutton's razor
+
+-- 1.
+
+data Expr
+  = Lit Integer
+  | Add Expr Expr
+
+hEval :: Expr -> Integer
+hEval (Lit i) = i
+hEval (Add e1 e2) = hEval e1 + hEval e2
+
+testEval =
+  t "huttonEval" $ hEval (Add (Lit 1) (Lit 9001))  == 9002
+
+-- 2.
+
+printExpr :: Expr -> String
+printExpr (Lit i) = show i
+printExpr (Add e1 e2) = printExpr e1 ++ " + " ++ printExpr e2
+
+testPrint = do
+  t "p1" $ printExpr (Add (Lit 1) (Lit 9001)) == "1 + 9001"
+  let a1 = Add (Lit 9001) (Lit 1)
+  let a2 = Add a1 (Lit 20001)
+  let a3 = Add (Lit 1) a2
+  t "pa2" $ printExpr a3 == "1 + 9001 + 1 + 20001"
+
 runTests :: IO ()
 runTests = do
   testLogicGoats1
@@ -740,3 +769,5 @@ runTests = do
   testCosts
   testCoolestLtr
   testCoolestWord
+  testEval
+  testPrint
