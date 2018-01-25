@@ -223,6 +223,7 @@ testLefts = do
   t "lefts" $ lefts' [Left 1, Right 10] == ([1] :: [Integer])
   t "lefts" $ lefts' [Right 2] == ([] :: [Integer])
 
+-- 2.
 
 rights' eithers =
   foldr folder [] eithers
@@ -233,6 +234,52 @@ rights' eithers =
 testRights = do
   t "rights" $ rights' [Left 1, Right 10] == ([10] :: [Integer])
   t "rights" $ rights' [Left 2] == ([] :: [Integer])
+
+-- 3.
+
+partitionEithers' :: [Either a b] -> ([a], [b])
+partitionEithers' eithers = (lefts' eithers, rights' eithers)
+
+testPartitionEithers = do
+  t "partitionEithers" $ partitionEithers' [Left 'a', Right False] == (['a'], [False])
+  t "partitionEithers" $ partitionEithers' [Left 'a'] == (['a'], [] :: [Char])
+
+-- 4.
+
+eitherMaybe' :: (b -> c)
+             -> Either a b
+             -> Maybe c
+eitherMaybe' bToC eAorB =
+  case eAorB of
+    Left a -> Nothing
+    Right b -> Just $ bToC b
+
+testEitherMaybe = do
+  t "eitherMaybe" $ eitherMaybe' id (Left 'a' :: Either Char Char) == Nothing
+  t "eitherMaybe" $ eitherMaybe' id (Right 'a' :: Either Char Char) == Just 'a'
+
+either' :: (a -> c)
+        -> (b -> c)
+        -> Either a b
+        -> c
+either' aToC bToC eAB =
+  case eAB of
+    Left a -> aToC a
+    Right b -> bToC b
+
+testEither' = do
+  t "either" $ either' (const False) (const True) (Left 1) == False
+  t "either" $ either' (const False) (const True) (Right 1) == True
+
+eitherMaybe'' :: (b -> c)
+              -> Either a b
+              -> Maybe c
+eitherMaybe''  bToC eAB =
+  either' (const Nothing) (Just . bToC) eAB
+
+testEitherMaybe'' = do
+  t "eitherMaybe''" $ eitherMaybe'' id (Left 'a' :: Either Char Char) == Nothing
+  t "eitherMaybe''" $ eitherMaybe'' id (Right 'a' :: Either Char Char) == Just 'a'
 
 runTests :: IO ()
 runTests = do
@@ -252,3 +299,7 @@ runTests = do
   testFlipMaybe
   testLefts
   testRights
+  testPartitionEithers
+  testEitherMaybe
+  testEither'
+  testEitherMaybe''
