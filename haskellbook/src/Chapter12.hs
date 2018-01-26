@@ -281,6 +281,103 @@ testEitherMaybe'' = do
   t "eitherMaybe''" $ eitherMaybe'' id (Left 'a' :: Either Char Char) == Nothing
   t "eitherMaybe''" $ eitherMaybe'' id (Right 'a' :: Either Char Char) == Just 'a'
 
+
+
+
+-- anamorphisms
+
+-- 1.
+myIterate :: (a -> a)
+          -> a
+          -> [a]
+
+myIterate succ this =
+  this : myIterate succ (succ this)
+
+testMyIterate = do
+  t "myIterate" $ (myIterate (+1) 0 & take 10) == [0,1,2,3,4,5,6,7,8,9]
+
+
+-- 2.
+
+myUnfoldr :: (b -> Maybe (a, b))
+          -> b
+          -> [a]
+myUnfoldr iter step =
+  case iter step of
+    Nothing -> []
+    Just (a,b) -> a : myUnfoldr iter b
+
+testMyUnfoldr = do
+  t "myUnfoldr" $ myUnfoldr foo (ord 'a') == [0..24]
+  where
+    foo oChar =
+      if oChar < (ord 'z') then
+        Just (oChar - (ord 'a'), oChar+1)
+      else
+        Nothing
+
+-- 3.
+
+betterIterate :: (a -> a) -> a -> [a]
+betterIterate f x =
+  myUnfoldr (\y -> Just (y, f y)) x
+
+testBetterIterate = do
+  t "betterIterate" $ (betterIterate (+1) 0 & take 10) == [0,1,2,3,4,5,6,7,8,9]
+
+
+-- "finally something other than list"
+
+
+data BinaryTree a
+  = Leaf
+  | Node
+    (BinaryTree a)
+    a
+    (BinaryTree a)
+  deriving (Eq, Ord, Show)
+
+
+-- 1 .
+
+unfold :: (a -> Maybe (a,b,a))
+       -> a
+       -> BinaryTree b
+unfold f x =
+  case f x of
+    Nothing -> Leaf
+    Just (a, b, c) -> Node (unfold f a) b (unfold f c)
+
+testUnfold = do
+  t "unfold" $ (unfold foo 'a') == (Node Leaf 'a' Leaf)
+  where
+    foo char =
+      bool Nothing (Just (succ char, char, succ char)) (char < 'b')
+
+-- 2.
+
+treeBuild :: Integer -> BinaryTree Integer
+treeBuild num =
+  unfold build' 0
+  where
+    build' n =
+      bool (Just ((n+1), n, (n+1))) Nothing  (n >= num)
+
+
+testTreeBuild =
+  t "treeBuild" $ treeBuild 3 ==
+    (Node
+     (Node
+      (Node Leaf 2 Leaf)
+      1
+      (Node Leaf 2 Leaf))
+     0
+     (Node
+      (Node Leaf 2 Leaf)
+      1
+      (Node Leaf 2 Leaf)))
+
 runTests :: IO ()
 runTests = do
   testThe
@@ -303,3 +400,8 @@ runTests = do
   testEitherMaybe
   testEither'
   testEitherMaybe''
+  testMyIterate
+  testMyUnfoldr
+  testBetterIterate
+  testUnfold
+  testTreeBuild
