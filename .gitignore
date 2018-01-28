@@ -20,4 +20,4 @@ haskellbook/haskell-programming-1.0RC2-screen.pdf
 haskellbook/hangman/.stack-work/
 haskellbook/hangman/LICENSE
 haskellbook/hangman/README.md
-haskellbook/hangman/data/
+haskellbook/hangman/data/dict.txt
