@@ -21,13 +21,15 @@ library
                      , Chapter11
                      , Chapter12
                      , Chapter13
+                     , Chapter14
                      , Workspace
                      , TestLib
   build-depends:       base >= 4.7 && < 5
                      , time
+                     , hspec
   default-language:    Haskell2010
 
-executable haskellbook-exe
+executable hb
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
