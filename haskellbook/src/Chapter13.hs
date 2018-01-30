@@ -109,9 +109,3 @@ gimmePerson = do
 
     Right person -> do
       putStrLn $ "Yay! Successfully got a person: " ++ show person
-
-run = do
-  -- runCipher
-  -- runPalindrome
-  -- runPalindromeBetter
-  gimmePerson
