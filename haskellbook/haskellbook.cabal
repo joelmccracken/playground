@@ -20,6 +20,7 @@ library
                      , Chapter11
                      , Chapter12
                      , Chapter13
+                     , Hangman
                      , Chapter14
                      , Workspace
                      , TestLib
@@ -27,6 +28,8 @@ library
                      , time
                      , hspec
                      , QuickCheck
+                     , random
+                     , split
   default-language:    Haskell2010
 
 executable haskellbook

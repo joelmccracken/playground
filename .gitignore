@@ -14,10 +14,4 @@ haskellbook/.stack-work
 haskellbook/haskell-programming-1.0RC2-ereader.pdf
 haskellbook/haskell-programming-1.0RC2-screen.pdf
 
-
-
-
-haskellbook/hangman/.stack-work/
-haskellbook/hangman/LICENSE
-haskellbook/hangman/README.md
-haskellbook/hangman/data/dict.txt
+haskellbook/data/dict.txt

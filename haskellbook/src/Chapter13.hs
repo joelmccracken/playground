@@ -15,7 +15,6 @@ import Data.Char
 --    c. import Control.Monad (forever, when)
 --
 
-
 -- modifying code
 -- 1.
 caesarIO :: IO String
