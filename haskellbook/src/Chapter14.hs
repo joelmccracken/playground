@@ -1,32 +1,41 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Chapter14 where
+
+import qualified Morse
 
 import Test.Hspec
 import Test.QuickCheck
+import Test.QuickCheck.Gen (oneof)
 
-import System.Environment
+import GHC.Generics
+import Test.QuickCheck
 
 main :: IO ()
-main = withArgs [] $ hspec $ do
-  describe "Addition" $ do
-    it "1 + 1 is greater than 1" $ do
-      (1 + 1) > 1 `shouldBe` True
-    it "2 + 2 is equal to 4" $ do
-      2 + 2 `shouldBe` 4
-  describe "Division" $ do
-    it "15 dividedby 3 is 5" $ do
-      dividedBy 15 3 `shouldBe` (5, 0)
-    it "22 divided by 5 is\
-       \ 4 remainder 2" $ do
-      dividedBy 22 5 `shouldBe` (4, 2)
-  describe "recurMult" $ do
-    it "does integral multiplication" $ do
-      recurMult 15 3 `shouldBe` 45
-      recurMult 15 (-3) `shouldBe` (-45)
-      recurMult (-15) (-3) `shouldBe` (45)
+main =  do
+  Morse.morseTest
+  hspec $ do
+    describe "Addition" $ do
+      it "1 + 1 is greater than 1" $ do
+        (1 + 1) > 1 `shouldBe` True
+      it "2 + 2 is equal to 4" $ do
+        2 + 2 `shouldBe` 4
+    describe "Division" $ do
+      it "15 dividedby 3 is 5" $ do
+        dividedBy 15 3 `shouldBe` (5, 0)
+      it "22 divided by 5 is\
+         \ 4 remainder 2" $ do
+        dividedBy 22 5 `shouldBe` (4, 2)
+    describe "recurMult" $ do
+      it "does integral multiplication" $ do
+        recurMult 15 3 `shouldBe` 45
+        recurMult 15 (-3) `shouldBe` (-45)
+        recurMult (-15) (-3) `shouldBe` (45)
 
-  it "x + 1 is always\
-     \ greater than x" $ do
-    property $ \x -> x + 1 > (x :: Int)
+    it "x + 1 is always\
+       \ greater than x" $ do
+      property $ \x -> x + 1 > (x :: Int)
+
 
 dividedBy :: Integral a => a -> a -> (a, a)
 dividedBy num denom =
@@ -80,3 +89,110 @@ genMaybe' = do
   frequency [ (1, return Nothing)
             , (3, return $ Just a)
             ]
+
+
+-- arbitrary instances
+
+
+data Trivial =
+  Trivial
+  deriving (Eq, Show)
+
+trivialGen :: Gen Trivial
+trivialGen =
+  return Trivial
+
+
+instance Arbitrary Trivial where
+  arbitrary = trivialGen
+
+
+
+data Identity a =
+  Identity a
+  deriving (Eq, Show)
+
+
+identityGen :: Arbitrary a =>
+               Gen (Identity a)
+
+identityGen = do
+  a <- arbitrary
+  return (Identity a)
+
+
+instance Arbitrary a =>
+         Arbitrary (Identity a) where
+  arbitrary = identityGen
+
+
+identityGenInt :: Gen (Identity Int)
+identityGenInt = identityGen
+
+data Pair a b =
+  Pair a b
+  deriving (Eq, Show)
+
+pairGen :: (Arbitrary a,
+            Arbitrary b) =>
+           Gen (Pair a b)
+pairGen = do
+  a <- arbitrary
+  b <- arbitrary
+  return (Pair a b)
+
+instance (Arbitrary a,
+         Arbitrary b) =>
+         Arbitrary (Pair a b) where
+  arbitrary = pairGen
+
+
+pairGenIntString :: Gen (Pair Int String)
+pairGenIntString = pairGen
+
+
+data Sum a b
+  = First a
+  | Second b
+  deriving (Eq, Show)
+
+
+sumGenEqual :: (Arbitrary a,
+                Arbitrary b) =>
+               Gen (Sum a b)
+sumGenEqual = do
+  a <- arbitrary
+  b <- arbitrary
+  oneof [return $ First a,
+         return $ Second b]
+
+sumGenCharInt :: Gen (Sum Char Int)
+sumGenCharInt = sumGenEqual
+
+
+sumGenFirstPls:: (Arbitrary a,
+                  Arbitrary b) =>
+                 Gen (Sum a b)
+sumGenFirstPls = do
+  a <- arbitrary
+  b <- arbitrary
+  frequency [(10, return $ First a),
+             (1, return $ Second b)]
+
+sumGenCharIntFirst :: Gen (Sum Char Int)
+sumGenCharIntFirst = sumGenFirstPls
+
+data Bool'
+  = True'
+  | False'
+  deriving (Generic)
+
+
+instance CoArbitrary Bool'
+
+
+trueGen :: Gen Int
+trueGen = coarbitrary True' arbitrary
+
+falseGen :: Gen Int
+falseGen = coarbitrary False' arbitrary
