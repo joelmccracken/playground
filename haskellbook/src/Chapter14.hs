@@ -11,9 +11,11 @@ import Test.QuickCheck.Gen (oneof)
 import GHC.Generics
 import Test.QuickCheck
 
+import qualified Chapter08 as C08
+
+
 main :: IO ()
 main =  do
-  Morse.morseTest
   hspec $ do
     describe "Addition" $ do
       it "1 + 1 is greater than 1" $ do
@@ -36,6 +38,22 @@ main =  do
        \ greater than x" $ do
       property $ \x -> x + 1 > (x :: Int)
 
+    describe "chapter exercises" $ do
+      describe "digitToWord" $ do
+        it "returns zero for 0" $ do
+          C08.digitToWord 0 `shouldBe` "zero"
+        it "returns one for 1" $ do
+          C08.digitToWord 1 `shouldBe` "one"
+      describe "digits" $ do
+        it "returns [1] for 1" $ do
+          C08.digits 1 `shouldBe` [1]
+        it "returns [1, 0, 0] for 100" $ do
+          C08.digits 100 `shouldBe` [1, 0, 0]
+      describe "wordNumber" $ do
+        it "one-zero-zero given 100" $ do
+          C08.wordNumber 100 `shouldBe` "one-zero-zero"
+        it "nine-zero-zero-one for 9001" $ do
+          C08.wordNumber 9001`shouldBe` "nine-zero-zero-one"
 
 dividedBy :: Integral a => a -> a -> (a, a)
 dividedBy num denom =

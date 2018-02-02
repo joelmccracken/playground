@@ -32,6 +32,8 @@ main = do
             -- remove initial ch14-morse from args
             [arg] -> withArgs [arg] $ Morse.main
             _      -> argError
+        "ch14-morse-test" ->
+          Morse.morseTest
     _ -> argError
   where
     argError = do
