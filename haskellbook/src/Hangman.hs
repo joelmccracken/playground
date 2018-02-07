@@ -86,31 +86,48 @@ fillInCharacter (Puzzle word
       zipWith (zipper c)
         word filledInSoFar
 
-handleGuess :: Puzzle -> Char -> IO Puzzle
-handleGuess puzzle guess = do
-  putStrLn $ "Your guess was: " ++ [guess]
+data GuessResult
+  = AlreadyGuessed Puzzle
+  | WasInWord Puzzle
+  | WasNotInWord Puzzle
+
+
+handleGuess' :: Puzzle -> Char -> GuessResult
+handleGuess' puzzle guess = do
   case (charInWord puzzle guess
        , alreadyGuessed puzzle guess) of
     (True, True) -> do
+      AlreadyGuessed puzzle
+
+    (True, False) -> do
+      WasInWord (fillInCharacter puzzle guess)
+
+    (False, True) -> do
+      AlreadyGuessed puzzle
+
+    (False, False) -> do
+      WasNotInWord (addIncorrectGuess puzzle guess)
+
+handleGuess :: Puzzle -> Char -> IO Puzzle
+handleGuess puzzle guess = do
+  putStrLn $ "Your guess was: " ++ [guess]
+  case handleGuess' puzzle guess of
+    AlreadyGuessed puzzle -> do
       putStrLn "You already guessed that\
                \ character, pick \
                \ something else!"
       return puzzle
 
-    (True, False) -> do
+    WasInWord puzzle -> do
       putStrLn "This character was in the\
                \ word, filling in the word\
                \ accordingly"
-      return (fillInCharacter puzzle guess)
+      return puzzle
 
-    (False, True) -> do
+    WasNotInWord puzzle -> do
       putStrLn "This character wasn't in\
                \ the word, try again."
       return puzzle
-
-    (False, False) -> do
-      putStrLn "This character wasn't in the word."
-      return (addIncorrectGuess puzzle guess)
 
 
 maxGuesses = 15
