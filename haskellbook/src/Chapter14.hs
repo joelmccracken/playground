@@ -66,6 +66,15 @@ main =  do
               ((apply fn) x) == ((apply fn) $ x)
           property test
 
+        it "property for the definition of (.)" $ do
+          let
+            test :: Fun Int Int -> Fun Int Int -> Int -> Bool
+            test f g x =
+              ((f' . g') x) == (\x2 -> (f' (g' x2)) x
+              where
+                f' = apply f
+                g' = apply g
+          property test
 
     describe "Addition" $ do
       it "1 + 1 is greater than 1" $ do
