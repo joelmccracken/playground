@@ -6,6 +6,7 @@ import qualified Morse
 
 import Test.Hspec
 import Test.QuickCheck
+import Test.QuickCheck.Function
 import Test.QuickCheck.Gen (oneof)
 
 import GHC.Generics
@@ -13,10 +14,59 @@ import Test.QuickCheck
 
 import qualified Chapter08 as C08
 
+import Data.List (sort)
 
 main :: IO ()
 main =  do
   hspec $ do
+    describe "chapter exercises" $ do
+      describe "using quickcheck" $ do
+        it "halfIdentity" $ do
+          let halfIdentity = (*2) . half
+          property $ \x -> x == halfIdentity (x :: Float)
+        it "listOrdered" $ do
+          property $ \x -> listOrdered (sort (x :: [Int]))
+        it "addition associativity" $ do
+          property (associative (+) :: Int -> Int -> Int -> Bool)
+        it "addition commutivity" $ do
+          property (commutative (+) :: Int -> Int -> Bool)
+        it "multiplication associativity" $ do
+          property (associative (*) :: Int -> Int -> Int -> Bool)
+        it "multiplication commutivity" $ do
+          property (commutative (*) :: Int -> Int -> Bool)
+        it "quot rem properties" $ do
+          let quotRemProp :: Int -> Int -> Bool
+              quotRemProp x y =
+                (quot x y') * y' + (rem x y') == x
+                where y' = notZero y
+          property quotRemProp
+        it "div mod properties" $ do
+          let divModProp :: Int -> Int -> Bool
+              divModProp x y =
+                (div x y') * y' + (mod x y') == x
+                where y' = notZero y
+          property divModProp
+
+        -- neither associative nor commutative
+        -- it "multiplication associativity" $ do
+        --   property (associative (^) :: Int -> Int -> Int -> Bool)
+        -- it "multiplication commutivity" $ do
+        --   property (commutative (^) :: Int -> Int -> Bool)
+
+        it "double reverse is id" $ do
+          let doubleReverseIsId :: [Int] -> Bool
+              doubleReverseIsId xs =
+                (reverse . reverse) xs == id xs
+          property doubleReverseIsId
+
+        it "property for the definition of ($)" $ do
+          let
+            test :: Fun Int Int -> Int -> Bool
+            test fn x =
+              ((apply fn) x) == ((apply fn) $ x)
+          property test
+
+
     describe "Addition" $ do
       it "1 + 1 is greater than 1" $ do
         (1 + 1) > 1 `shouldBe` True
@@ -214,3 +264,32 @@ trueGen = coarbitrary True' arbitrary
 
 falseGen :: Gen Int
 falseGen = coarbitrary False' arbitrary
+
+half x = x / 2
+
+listOrdered :: (Ord a) => [a] -> Bool
+listOrdered xs =
+  snd $ foldr go (Nothing, True) xs
+  where
+    go _ status@(_, False) = status
+    go y (Nothing, t) = (Just y, t)
+    go y (Just x, t) = (Just y, x >= y)
+
+
+associative :: Eq a
+            => (a -> a -> a)
+            -> a -> a -> a
+            -> Bool
+associative f x y z =
+  (x `f` y) `f` z == (x `f` y) `f` z
+
+
+commutative :: Eq a
+            => (a -> a -> a)
+            -> a -> a
+            -> Bool
+commutative f x y =
+  x `f` y ==  y `f` x
+
+notZero 0 = 1
+notZero i = i
