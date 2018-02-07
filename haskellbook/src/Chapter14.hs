@@ -10,9 +10,9 @@ import Test.QuickCheck.Function
 import Test.QuickCheck.Gen (oneof)
 
 import GHC.Generics
-import Test.QuickCheck
 
 import qualified Chapter08 as C08
+import qualified Chapter11 as C11
 
 import Data.List (sort)
 
@@ -48,10 +48,10 @@ main =  do
           property divModProp
 
         -- neither associative nor commutative
-        -- it "multiplication associativity" $ do
-        --   property (associative (^) :: Int -> Int -> Int -> Bool)
-        -- it "multiplication commutivity" $ do
-        --   property (commutative (^) :: Int -> Int -> Bool)
+        it "exponentiation associativity" $ do
+          expectFailure $ property (associative (^) :: Int -> Int -> Int -> Bool)
+        it "exponentiation commutivity" $ do
+          expectFailure $ property (commutative (^) :: Int -> Int -> Bool)
 
         it "double reverse is id" $ do
           let doubleReverseIsId :: [Int] -> Bool
@@ -70,11 +70,58 @@ main =  do
           let
             test :: Fun Int Int -> Fun Int Int -> Int -> Bool
             test f g x =
-              ((f' . g') x) == (\x2 -> (f' (g' x2)) x
+              ((f' . g') x) == (\x2 -> f' (g' x2)) x
               where
                 f' = apply f
                 g' = apply g
           property test
+
+        it "is foldr (:) == (++)" $ do
+          expectFailure $ property $ \xs ys ->
+            (foldr (:)) (xs :: [Int]) (ys :: [Int]) == (++) xs ys
+          -- not the same, might be the same if flipped as (flip (foldr (:)))
+
+        -- nope, wont be same if n > length of xs or n < 0
+        it "is foldr (++) [] == concat" $ do
+          let
+            f :: Int -> [Int] -> Bool
+            f n xs = length (take n xs) == n
+          expectFailure $ property f
+
+        it "show read round-trip" $ do
+          let
+            roundTrip :: (Read a, Show a, Eq a) => a -> Bool
+            roundTrip x =
+              read (show x) == x
+          (property (roundTrip :: Int -> Bool)
+           .&&.
+           property (roundTrip :: String -> Bool) )
+
+        it "why property fails" $ do
+          let square x = x * x
+              squareId = square . sqrt
+              prop x = x == squareId x
+          expectFailure $ property (prop :: Float -> Bool)
+          -- fails because of inexact precision with small floating numbers
+
+        describe "idempotence" $ do
+          let twice f = f . f
+              fourTimes = twice . twice
+          it "cap word" $ do
+            let f x =
+                  (C11.capitalizeWord x
+                    == twice C11.capitalizeWord x)
+                  &&
+                  (C11.capitalizeWord x
+                   == fourTimes C11.capitalizeWord x)
+            property f
+          it "sort" $ do
+            let f :: [Int] -> Bool
+                f x =
+                  (sort x == twice sort x)
+                  &&
+                  (sort x == fourTimes sort x)
+            property f
 
     describe "Addition" $ do
       it "1 + 1 is greater than 1" $ do
@@ -302,3 +349,16 @@ commutative f x y =
 
 notZero 0 = 1
 notZero i = i
+
+
+-- gen exercises
+
+data Fool
+  = Fulse
+  | Frue
+  deriving (Eq, Show)
+
+foolGen = elements [Fulse, Frue]
+weightedFoolGen =
+  frequency [(2, return Fulse),
+             (1, return Frue)]

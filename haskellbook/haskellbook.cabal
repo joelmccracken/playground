@@ -33,6 +33,7 @@ library
                      , QuickCheck
                      , random
                      , split
+                     , hlint
   default-language:    Haskell2010
 
 executable haskellbook
