@@ -15,6 +15,7 @@ import qualified Chapter08 as C08
 import qualified Chapter11 as C11
 
 import Data.List (sort)
+import Hangman
 
 main :: IO ()
 main =  do
@@ -122,6 +123,48 @@ main =  do
                   &&
                   (sort x == fourTimes sort x)
             property f
+
+        describe "testing hangman" $ do
+          it "fills in a character" $ do
+            let start = Puzzle "a" [Nothing] "ei"
+            let end =   Puzzle "a" [Just 'a'] "aei"
+            fillInCharacter start 'a' `shouldBe` end
+
+          it "fills in duplicates" $ do
+            let start = Puzzle "abba" [Nothing, Just 'b', Just 'b', Nothing] ""
+            let end =   Puzzle "abba" [Just 'a', Just 'b', Just 'b', Just 'a'] "a"
+            fillInCharacter start 'a' `shouldBe` end
+
+          it "only adds to guessed list when guessed is not in puzzle" $ do
+            let start = Puzzle "xy" [Nothing, Nothing] ""
+            let end =   Puzzle "xy" [Nothing, Nothing] "a"
+            fillInCharacter start 'a' `shouldBe` end
+
+          it "always adds characters to the end" $ do
+            let guessedIsAlwaysAtEnd :: Char -> Bool
+                guessedIsAlwaysAtEnd guess =
+                  let
+                    result = fillInCharacter (Puzzle "" [] "") guess
+                  in
+                    (\(Puzzle _ _ (x:xs)) -> x == guess) result
+            property guessedIsAlwaysAtEnd
+
+          it "finds if guess is in word" $ do
+            let start = Puzzle "abba" [Nothing, Nothing] ""
+            let wasInWord =
+                  case handleGuess' start 'a' of
+                    WasInWord _ -> True
+                    _ -> False
+            wasInWord `shouldBe` True
+
+          it "finds if guess is not in word" $ do
+            let start = Puzzle "abba" [Nothing, Nothing] ""
+            let wasInWord =
+                  case handleGuess' start 'x' of
+                    WasNotInWord _ -> True
+                    _ -> False
+            wasInWord `shouldBe` True
+
 
     describe "Addition" $ do
       it "1 + 1 is greater than 1" $ do

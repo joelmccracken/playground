@@ -41,6 +41,7 @@ randomWord' = gameWords >>= randomWord
 
 data Puzzle =
   Puzzle String [Maybe Char] [Char]
+  deriving Eq
 
 instance Show Puzzle where
   show (Puzzle _ discovered guessed) =
@@ -75,7 +76,7 @@ addIncorrectGuess (Puzzle word filledInSoFar s) char  =
 fillInCharacter :: Puzzle -> Char -> Puzzle
 fillInCharacter (Puzzle word
                  filledInSoFar s) c =
-  Puzzle word newFilledInSoFar s
+  Puzzle word newFilledInSoFar (c:s)
   where
     zipper guessed wordChar guessChar =
       if wordChar == guessed
