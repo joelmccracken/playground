@@ -292,7 +292,7 @@ I actually wrote this at the end of chapter 11, but it belongs here, soooo, putt
 
 > shiftChar :: Int -> Char -> Char
 > shiftChar shiftNum char =
->   if isAlpha char then
+>   if isAscii char && isAlpha char then
 >     if isLower char then
 >       shiftChar' shiftNum char 'a' 'z'
 >     else

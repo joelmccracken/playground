@@ -12,7 +12,11 @@ import Test.QuickCheck.Gen (oneof)
 import GHC.Generics
 
 import qualified Chapter08 as C08
+import qualified Chapter09 as C09
 import qualified Chapter11 as C11
+
+
+import Data.Function ((&))
 
 import Data.List (sort)
 import Hangman
@@ -164,6 +168,28 @@ main =  do
                     WasNotInWord _ -> True
                     _ -> False
             wasInWord `shouldBe` True
+
+          it "finds if guess was already guessed" $ do
+            let start = Puzzle "abba" [Nothing, Nothing] "x"
+            let wasInWord =
+                  case handleGuess' start 'x' of
+                    AlreadyGuessed _ -> True
+                    _ -> False
+            wasInWord `shouldBe` True
+
+        describe "testing ciphers" $ do
+          it "vigenere" $ do
+            let prop :: String -> String -> Bool
+                prop cipherText message =
+                  (C11.unVigenere cipherText (C11.vigenere cipherText message)) == message
+            property prop
+
+          it "caesar" $ do
+            let prop :: String -> String -> Bool
+                prop cipherText message =
+                  (C09.caesar (-10) (C09.caesar 10 message)) == message
+            property prop
+
 
 
     describe "Addition" $ do

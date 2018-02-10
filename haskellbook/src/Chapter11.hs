@@ -524,6 +524,7 @@ unVigenere :: String -> String -> String
 unVigenere = (vigenere' (*(-1)))
 
 vigenere' :: (Int -> Int) -> String -> String -> String
+vigenere' _ "" message = message
 vigenere' modifier cipherText message =
   let
     offsets :: [Int]
