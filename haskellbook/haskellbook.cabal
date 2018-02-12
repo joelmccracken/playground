@@ -24,6 +24,7 @@ library
                      , Hangman
                      , Chapter14
                      , Morse
+                     , Chapter15
                      , Workspace
                      , TestLib
   build-depends:       base >= 4.7 && < 5

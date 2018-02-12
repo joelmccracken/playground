@@ -12,6 +12,7 @@ import qualified Chapter13
 import qualified Hangman
 import qualified Chapter14
 import qualified Morse
+import qualified Chapter15
 
 
 main :: IO ()
@@ -34,6 +35,7 @@ main = do
             _      -> argError
         "ch14-morse-test" ->
           Morse.morseTest
+        "ch15" -> withArgs [] $ Chapter15.main
     _ -> argError
   where
     argError = do
