@@ -35,6 +35,7 @@ library
                      , random
                      , split
                      , hlint
+                     , semigroups
   default-language:    Haskell2010
 
 executable haskellbook
