@@ -36,14 +36,33 @@ main = do
         property (monoidRightIdentity :: First' String -> Bool)
 
     describe "chapter exercise semigroups" $ do
-      it "Trivial" $ do
-        property  (semigroupAssoc :: TrivAssoc)
+      it "Trivial assoc" $ do
+        property (semigroupAssoc :: TrivAssoc)
+
+      it "Trivial left Id" $ do
+        property (monoidLeftIdentity :: Trivial -> Bool)
+
+      it "Trivial right Id" $ do
+        property (monoidRightIdentity :: Trivial -> Bool)
 
       it "Identity" $ do
         property  (semigroupAssoc :: IdentityAssoc)
 
-      it "Two" $ do
+      it "Identity left id" $ do
+        property  (monoidLeftIdentity :: Identity String -> Bool)
+
+      it "Identity right id" $ do
+        property  (monoidRightIdentity :: Identity String -> Bool)
+
+      it "Two assoc" $ do
         property (semigroupAssoc :: Two String String -> Two String String -> Two String String -> Bool)
+
+      it "Two left id" $ do
+        property (monoidLeftIdentity :: Two String String -> Bool)
+
+      it "Two right id" $ do
+        property ( monoidRightIdentity :: Two String String -> Bool)
+
 
       it "Three" $ do
         property (semigroupAssoc :: Three String String String -> Three String String String -> Three String String String -> Bool)
@@ -238,6 +257,11 @@ data Trivial = Trivial deriving (Eq, Show)
 instance Semi.Semigroup Trivial where
   _ <> _ = Trivial
 
+
+instance Monoid Trivial where
+  mempty = Trivial
+  mappend = (Semi.<>)
+
 instance Arbitrary Trivial where
   arbitrary = return Trivial
 
@@ -255,6 +279,10 @@ newtype Identity a = Identity a deriving (Eq, Show)
 
 instance Semi.Semigroup a => Semi.Semigroup (Identity a) where
   (Identity x) <> (Identity y) = Identity (x Semi.<> y)
+
+instance (Semi.Semigroup a, Monoid a) => Monoid (Identity a) where
+  mempty = Identity (mempty)
+  mappend = (Semi.<>)
 
 instance Arbitrary a => Arbitrary (Identity a) where
   arbitrary = do
@@ -274,6 +302,10 @@ instance (Arbitrary a, Arbitrary b) => Arbitrary (Two a b) where
 
 instance (Semi.Semigroup a, Semi.Semigroup b) => Semi.Semigroup (Two a b) where
   (Two a1 b1) <> (Two a2 b2) = Two (a1 Semi.<> a2) (b1 Semi.<> b2)
+
+instance (Semi.Semigroup a, Monoid a, Semi.Semigroup b, Monoid b) => Monoid (Two a b) where
+  mempty = Two mempty mempty
+  mappend = (Semi.<>)
 
 data Three a b c = Three a b c
   deriving (Eq, Show)
