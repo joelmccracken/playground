@@ -86,29 +86,59 @@ main = do
         (unCombine (f Semi.<> f) $ 1) `shouldBe` Sum { getSum = 4}
         (unCombine (g Semi.<> f) $ 1) `shouldBe` Sum { getSum = 2}
 
-      it "Combine qc"  $ do
+      it "Combine qc" $ do
         property (combineAssoc :: Char
                                -> Combine Char (Sum Int)
                                -> Combine Char (Sum Int)
                                -> Combine Char (Sum Int)
                                -> Bool)
+      it "Comp spec" $ do
+        (unComp (Comp (+1) Semi.<> Comp (+2)) 5 `shouldBe` 8)
+        (unComp (Comp (/2) Semi.<> Comp (+2)) 6 `shouldBe` 4)
+        (unComp (Comp (+2) Semi.<> Comp (/2)) 6 `shouldBe` 5)
 
-      describe "Optional monoid" $ do
-        it "1 <> 1 works (Sum)" $ do
-          Only (Sum 1) `mappend` Only (Sum 1)
-            `shouldBe` Only (Sum 2)
+      it "Comp qc" $ do
+        property (compAssoc :: Int
+                               -> Comp Int
+                               -> Comp Int
+                               -> Comp Int
+                               -> Bool)
 
-        it "4 <> 2 works (Product)" $ do
-          Only (Product 4) `mappend` Only (Product 2)
-            `shouldBe` Only (Product 8)
 
-        it "1 <> nothing works" $ do
-          Only (Sum 1) `mappend` Nada
-            `shouldBe` Only (Sum 1)
-          Only [1] `mappend` Nada
-            `shouldBe` Only [1]
-          Nada <> Only [1]
-            `shouldBe` Only [1]
+      it "Validation spec" $ do
+        let failure :: String -> Validation String Int
+            failure = Failure'
+            success :: Int -> Validation String Int
+            success = Success'
+        success 1 Semi.<> failure "blah" `shouldBe` Success' 1
+        failure "woot" Semi.<> failure "blah" `shouldBe` Failure' "wootblah"
+        success 1 Semi.<> success 2 `shouldBe` Success' 1
+        failure "woot" Semi.<> success 2 `shouldBe` Success' 2
+
+      it "validation qc" $ do
+        property (semigroupAssoc
+                  :: Validation String String
+                  -> Validation String String
+                  -> Validation String String
+                  -> Bool)
+
+
+    describe "Optional monoid" $ do
+      it "1 <> 1 works (Sum)" $ do
+        Only (Sum 1) `mappend` Only (Sum 1)
+          `shouldBe` Only (Sum 2)
+
+      it "4 <> 2 works (Product)" $ do
+        Only (Product 4) `mappend` Only (Product 2)
+          `shouldBe` Only (Product 8)
+
+      it "1 <> nothing works" $ do
+        Only (Sum 1) `mappend` Nada
+          `shouldBe` Only (Sum 1)
+        Only [1] `mappend` Nada
+          `shouldBe` Only [1]
+        Nada <> Only [1]
+          `shouldBe` Only [1]
 
 data Optional a
   = Nada
@@ -204,7 +234,6 @@ type FirstMappend = First' String -> First' String -> First' String -> Bool
 --- chapter exercises
 
 data Trivial = Trivial deriving (Eq, Show)
-
 
 instance Semi.Semigroup Trivial where
   _ <> _ = Trivial
@@ -340,3 +369,44 @@ combineAssoc :: (Semi.Semigroup b, Eq b)
              -> Bool
 combineAssoc x a b c =
   unCombine (a Semi.<> (b Semi.<> c)) x == unCombine ((a Semi.<> b) Semi.<> c) x
+
+newtype Comp a =
+  Comp { unComp :: (a -> a) }
+
+instance Show (Comp a) where
+  show _ = "comp"
+
+instance (CoArbitrary a, Arbitrary a) => Arbitrary (Comp a) where
+  arbitrary = do
+    x <- arbitrary
+    return $ Comp x
+
+instance Semi.Semigroup (Comp a) where
+  Comp uc1 <> Comp uc2 = Comp (uc1 . uc2)
+
+compAssoc :: (Eq a)
+          => a
+          -> Comp a
+          -> Comp a
+          -> Comp a
+          -> Bool
+compAssoc x a b c =
+  unComp (a Semi.<> (b Semi.<> c)) x == unComp ((a Semi.<> b) Semi.<> c) x
+
+
+data Validation a b
+  = Failure' a
+  | Success' b
+  deriving (Eq, Show)
+
+instance Semi.Semigroup a =>
+  Semi.Semigroup (Validation a b) where
+  (Success' s) <> _ = Success' s
+  _ <> (Success' n) = Success' n
+  (Failure' a) <> (Failure' b) = (Failure' (a Semi.<> b))
+
+instance (Arbitrary a, Arbitrary b) => Arbitrary (Validation a b) where
+  arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    elements [Failure' a, Success' b]
