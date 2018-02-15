@@ -7,7 +7,7 @@ import Test.Hspec.QuickCheck
 import Test.QuickCheck
 
 import Data.Monoid
-import qualified Data.Semigroup as Semi
+import qualified Data.Semigroup as SG
 
 main :: IO ()
 main = do
@@ -63,26 +63,37 @@ main = do
       it "Two right id" $ do
         property ( monoidRightIdentity :: Two String String -> Bool)
 
-
       it "Three" $ do
         property (semigroupAssoc :: Three String String String -> Three String String String -> Three String String String -> Bool)
 
       it "Four" $ do
         property (semigroupAssoc :: Four String String String String -> Four String String String String -> Four String String String String -> Bool)
 
-      it "BoolConj" $ do
+      it "BoolConj assoc" $ do
         property (semigroupAssoc :: BoolConj -> BoolConj -> BoolConj -> Bool)
 
+      it "BoolConj left id" $ do
+        property (monoidLeftIdentity :: BoolConj -> Bool)
+
+      it "BoolConj right id" $ do
+        property (monoidRightIdentity :: BoolConj -> Bool)
+
       it "BoolConj Behavior spec" $ do
-        (BoolConj True) Semi.<> (BoolConj True) `shouldBe` (BoolConj True)
-        (BoolConj True) Semi.<> (BoolConj False) `shouldBe` (BoolConj False)
+        (BoolConj True) SG.<> (BoolConj True) `shouldBe` (BoolConj True)
+        (BoolConj True) SG.<> (BoolConj False) `shouldBe` (BoolConj False)
 
       it "BoolDisj" $ do
         property (semigroupAssoc :: BoolDisj -> BoolDisj -> BoolDisj -> Bool)
 
+      it "BoolDisj left id" $ do
+        property (monoidLeftIdentity :: BoolDisj -> Bool)
+
+      it "BoolDisj right id" $ do
+        property (monoidRightIdentity :: BoolDisj -> Bool)
+
       it "BoolDisj Behavior spec" $ do
-        (BoolDisj True) Semi.<> (BoolDisj True) `shouldBe` (BoolDisj True)
-        (BoolDisj True) Semi.<> (BoolDisj False) `shouldBe` (BoolDisj True)
+        (BoolDisj True) SG.<> (BoolDisj True) `shouldBe` (BoolDisj True)
+        (BoolDisj True) SG.<> (BoolDisj False) `shouldBe` (BoolDisj True)
 
       it "Or"  $ do
         property (semigroupAssoc
@@ -92,47 +103,73 @@ main = do
                   -> Bool)
 
       it "Or spec"  $ do
-        (Fst 'a') Semi.<> (Snd 'b') `shouldBe` (Snd 'b')
-        (Fst 'a') Semi.<> (Fst 'b') `shouldBe` (Fst 'b' :: Or Char Char)
-        (Snd 'a') Semi.<> (Fst 'b') `shouldBe` (Snd 'a')
-        (Snd 'a') Semi.<> (Snd 'b') `shouldBe` (Snd 'a' :: Or Char Char)
+        (Fst 'a') SG.<> (Snd 'b') `shouldBe` (Snd 'b')
+        (Fst 'a') SG.<> (Fst 'b') `shouldBe` (Fst 'b' :: Or Char Char)
+        (Snd 'a') SG.<> (Fst 'b') `shouldBe` (Snd 'a')
+        (Snd 'a') SG.<> (Snd 'b') `shouldBe` (Snd 'a' :: Or Char Char)
 
       it "Combine spec"  $ do
         let f = Combine $ \n -> Sum (n + 1)
         let g = Combine $ \n -> Sum (n - 1)
-        (unCombine (f Semi.<> g) $ 0) `shouldBe` Sum { getSum = 0}
-        (unCombine (f Semi.<> g) $ 1) `shouldBe` Sum { getSum = 2}
-        (unCombine (f Semi.<> f) $ 1) `shouldBe` Sum { getSum = 4}
-        (unCombine (g Semi.<> f) $ 1) `shouldBe` Sum { getSum = 2}
+        (unCombine (f SG.<> g) $ 0) `shouldBe` Sum { getSum = 0}
+        (unCombine (f SG.<> g) $ 1) `shouldBe` Sum { getSum = 2}
+        (unCombine (f SG.<> f) $ 1) `shouldBe` Sum { getSum = 4}
+        (unCombine (g SG.<> f) $ 1) `shouldBe` Sum { getSum = 2}
 
-      it "Combine qc" $ do
+        (unCombine (mappend f mempty) $ 1) `shouldBe` Sum { getSum = 2}
+
+      it "Combine assoc" $ do
         property (combineAssoc :: Char
                                -> Combine Char (Sum Int)
                                -> Combine Char (Sum Int)
                                -> Combine Char (Sum Int)
                                -> Bool)
-      it "Comp spec" $ do
-        (unComp (Comp (+1) Semi.<> Comp (+2)) 5 `shouldBe` 8)
-        (unComp (Comp (/2) Semi.<> Comp (+2)) 6 `shouldBe` 4)
-        (unComp (Comp (+2) Semi.<> Comp (/2)) 6 `shouldBe` 5)
 
-      it "Comp qc" $ do
+      it "Combine left id" $ do
+        let combineLeftId :: Combine String String -> String -> Bool
+            combineLeftId comb val =
+              (mempty SG.<> comb) `unCombine` val == comb `unCombine` val
+        property combineLeftId
+
+      it "Combine right id" $ do
+        let combineLeftId :: Combine String String -> String -> Bool
+            combineLeftId comb val =
+              (comb SG.<> mempty) `unCombine` val == comb `unCombine` val
+        property combineLeftId
+
+      it "Comp spec" $ do
+        (unComp (Comp (+1) SG.<> Comp (+2)) 5 `shouldBe` 8)
+        (unComp (Comp (/2) SG.<> Comp (+2)) 6 `shouldBe` 4)
+        (unComp (Comp (+2) SG.<> Comp (/2)) 6 `shouldBe` 5)
+
+      it "Comp assoc" $ do
         property (compAssoc :: Int
                                -> Comp Int
                                -> Comp Int
                                -> Comp Int
                                -> Bool)
 
+      it "Comp left id" $ do
+        let compLeftId :: Comp String -> String -> Bool
+            compLeftId comp val =
+              (mempty SG.<> comp) `unComp` val == comp `unComp` val
+        property compLeftId
+
+      it "Comp right id" $ do
+        let compLeftId :: Comp String -> String -> Bool
+            compLeftId comp val =
+              (comp SG.<> mempty) `unComp` val == comp `unComp` val
+        property compLeftId
 
       it "Validation spec" $ do
         let failure :: String -> Validation String Int
             failure = Failure'
             success :: Int -> Validation String Int
             success = Success'
-        success 1 Semi.<> failure "blah" `shouldBe` Success' 1
-        failure "woot" Semi.<> failure "blah" `shouldBe` Failure' "wootblah"
-        success 1 Semi.<> success 2 `shouldBe` Success' 1
-        failure "woot" Semi.<> success 2 `shouldBe` Success' 2
+        success 1 SG.<> failure "blah" `shouldBe` Success' 1
+        failure "woot" SG.<> failure "blah" `shouldBe` Failure' "wootblah"
+        success 1 SG.<> success 2 `shouldBe` Success' 1
+        failure "woot" SG.<> success 2 `shouldBe` Success' 2
 
       it "validation qc" $ do
         property (semigroupAssoc
@@ -141,6 +178,16 @@ main = do
                   -> Validation String String
                   -> Bool)
 
+      it "mem spec" $ do
+        let f'      = Mem $ \s -> ("hi", s + (1 :: Int))
+            rmzero  = runMem mempty 0
+            rmleft  = runMem (f' <> mempty) 0
+            rmright = runMem (mempty <> f') 0
+        rmleft  `shouldBe` ("hi", 1)
+        rmright `shouldBe` ("hi", 1)
+        (rmzero :: (String, Int)) `shouldBe` ("", 0)
+        rmleft `shouldBe` runMem f' 0
+        rmright `shouldBe` runMem f' 0
 
     describe "Optional monoid" $ do
       it "1 <> 1 works (Sum)" $ do
@@ -254,21 +301,21 @@ type FirstMappend = First' String -> First' String -> First' String -> Bool
 
 data Trivial = Trivial deriving (Eq, Show)
 
-instance Semi.Semigroup Trivial where
+instance SG.Semigroup Trivial where
   _ <> _ = Trivial
 
 
 instance Monoid Trivial where
   mempty = Trivial
-  mappend = (Semi.<>)
+  mappend = (SG.<>)
 
 instance Arbitrary Trivial where
   arbitrary = return Trivial
 
-semigroupAssoc :: (Eq m, Semi.Semigroup m)
+semigroupAssoc :: (Eq m, SG.Semigroup m)
                 => m -> m -> m -> Bool
 semigroupAssoc a b c =
-  (a Semi.<> (b Semi.<> c)) == ((a Semi.<> b) Semi.<> c)
+  (a SG.<> (b SG.<> c)) == ((a SG.<> b) SG.<> c)
 
 
 type TrivAssoc =
@@ -277,12 +324,12 @@ type TrivAssoc =
 
 newtype Identity a = Identity a deriving (Eq, Show)
 
-instance Semi.Semigroup a => Semi.Semigroup (Identity a) where
-  (Identity x) <> (Identity y) = Identity (x Semi.<> y)
+instance SG.Semigroup a => SG.Semigroup (Identity a) where
+  (Identity x) <> (Identity y) = Identity (x SG.<> y)
 
-instance (Semi.Semigroup a, Monoid a) => Monoid (Identity a) where
+instance (SG.Semigroup a, Monoid a) => Monoid (Identity a) where
   mempty = Identity (mempty)
-  mappend = (Semi.<>)
+  mappend = (SG.<>)
 
 instance Arbitrary a => Arbitrary (Identity a) where
   arbitrary = do
@@ -300,12 +347,12 @@ instance (Arbitrary a, Arbitrary b) => Arbitrary (Two a b) where
     b <- arbitrary
     return $ Two a b
 
-instance (Semi.Semigroup a, Semi.Semigroup b) => Semi.Semigroup (Two a b) where
-  (Two a1 b1) <> (Two a2 b2) = Two (a1 Semi.<> a2) (b1 Semi.<> b2)
+instance (SG.Semigroup a, SG.Semigroup b) => SG.Semigroup (Two a b) where
+  (Two a1 b1) <> (Two a2 b2) = Two (a1 SG.<> a2) (b1 SG.<> b2)
 
-instance (Semi.Semigroup a, Monoid a, Semi.Semigroup b, Monoid b) => Monoid (Two a b) where
+instance (SG.Semigroup a, Monoid a, SG.Semigroup b, Monoid b) => Monoid (Two a b) where
   mempty = Two mempty mempty
-  mappend = (Semi.<>)
+  mappend = (SG.<>)
 
 data Three a b c = Three a b c
   deriving (Eq, Show)
@@ -317,8 +364,8 @@ instance (Arbitrary a, Arbitrary b, Arbitrary c) => Arbitrary (Three a b c) wher
     c <- arbitrary
     return $ Three a b c
 
-instance (Semi.Semigroup a, Semi.Semigroup b, Semi.Semigroup c) => Semi.Semigroup (Three a b c) where
-  (Three a1 b1 c1) <> (Three a2 b2 c2) = Three (a1 Semi.<> a2) (b1 Semi.<> b2) (c1 Semi.<> c2)
+instance (SG.Semigroup a, SG.Semigroup b, SG.Semigroup c) => SG.Semigroup (Three a b c) where
+  (Three a1 b1 c1) <> (Three a2 b2 c2) = Three (a1 SG.<> a2) (b1 SG.<> b2) (c1 SG.<> c2)
 
 data Four a b c d = Four a b c d
   deriving (Eq, Show)
@@ -331,9 +378,9 @@ instance (Arbitrary a, Arbitrary b, Arbitrary c, Arbitrary d) => Arbitrary (Four
     d <- arbitrary
     return $ Four a b c d
 
-instance (Semi.Semigroup a, Semi.Semigroup b, Semi.Semigroup c, Semi.Semigroup d) => Semi.Semigroup (Four a b c d) where
+instance (SG.Semigroup a, SG.Semigroup b, SG.Semigroup c, SG.Semigroup d) => SG.Semigroup (Four a b c d) where
   (Four a1 b1 c1 d1) <> (Four a2 b2 c2 d2)
-    = Four (a1 Semi.<> a2) (b1 Semi.<> b2) (c1 Semi.<> c2) (d1 Semi.<> d2)
+    = Four (a1 SG.<> a2) (b1 SG.<> b2) (c1 SG.<> c2) (d1 SG.<> d2)
 
 newtype BoolConj = BoolConj Bool
   deriving (Eq, Show)
@@ -341,9 +388,13 @@ newtype BoolConj = BoolConj Bool
 instance Arbitrary BoolConj where
   arbitrary = elements [BoolConj True, BoolConj False]
 
-instance Semi.Semigroup BoolConj where
+instance SG.Semigroup BoolConj where
   (BoolConj True) <> (BoolConj True) = BoolConj True
   _ <> _ = BoolConj False
+
+instance Monoid BoolConj where
+  mempty = BoolConj True
+  mappend = (SG.<>)
 
 newtype BoolDisj = BoolDisj Bool
   deriving (Eq, Show)
@@ -351,9 +402,13 @@ newtype BoolDisj = BoolDisj Bool
 instance Arbitrary BoolDisj where
   arbitrary = elements [BoolDisj True, BoolDisj False]
 
-instance Semi.Semigroup BoolDisj where
+instance SG.Semigroup BoolDisj where
   (BoolDisj False) <> (BoolDisj False) = BoolDisj False
   _ <> _ = BoolDisj True
+
+instance Monoid BoolDisj where
+  mempty = BoolDisj False
+  mappend = (SG.<>)
 
 data Or a b
   = Fst a
@@ -366,7 +421,7 @@ instance (Arbitrary a, Arbitrary b) => Arbitrary (Or a b) where
     b <- arbitrary
     elements [Fst a, Snd b]
 
-instance Semi.Semigroup (Or a b) where
+instance SG.Semigroup (Or a b) where
   (Snd x) <> _ = Snd x
   _ <> x = x
 
@@ -374,9 +429,13 @@ newtype Combine a b =
   Combine { unCombine :: a -> b }
   deriving (Generic)
 
-instance (Semi.Semigroup b) => Semi.Semigroup (Combine a b) where
-  Combine { unCombine = uc1 }  <> Combine { unCombine = uc2 }
-    = Combine (\x-> (uc1 x) Semi.<> (uc2 x))
+instance (SG.Semigroup b) => SG.Semigroup (Combine a b) where
+  Combine { unCombine = uc1 } <> Combine { unCombine = uc2 }
+    = Combine (\x-> (uc1 x) SG.<> (uc2 x))
+
+instance (Monoid b, SG.Semigroup b) => Monoid (Combine a b) where
+  mempty = Combine { unCombine = (const mempty) }
+  mappend = (SG.<>)
 
 instance (CoArbitrary a, Arbitrary b) => Arbitrary (Combine a b) where
   arbitrary = do
@@ -393,14 +452,14 @@ instance Arbitrary a => Arbitrary (Sum a) where
 
 instance (Arbitrary a, CoArbitrary b) => CoArbitrary (Combine a b)
 
-combineAssoc :: (Semi.Semigroup b, Eq b)
+combineAssoc :: (SG.Semigroup b, Eq b)
              => a
              -> Combine a b
              -> Combine a b
              -> Combine a b
              -> Bool
 combineAssoc x a b c =
-  unCombine (a Semi.<> (b Semi.<> c)) x == unCombine ((a Semi.<> b) Semi.<> c) x
+  unCombine (a SG.<> (b SG.<> c)) x == unCombine ((a SG.<> b) SG.<> c) x
 
 newtype Comp a =
   Comp { unComp :: (a -> a) }
@@ -413,8 +472,12 @@ instance (CoArbitrary a, Arbitrary a) => Arbitrary (Comp a) where
     x <- arbitrary
     return $ Comp x
 
-instance Semi.Semigroup (Comp a) where
+instance SG.Semigroup (Comp a) where
   Comp uc1 <> Comp uc2 = Comp (uc1 . uc2)
+
+instance SG.Semigroup a => Monoid (Comp a) where
+  mempty = Comp id
+  mappend = (SG.<>)
 
 compAssoc :: (Eq a)
           => a
@@ -423,7 +486,7 @@ compAssoc :: (Eq a)
           -> Comp a
           -> Bool
 compAssoc x a b c =
-  unComp (a Semi.<> (b Semi.<> c)) x == unComp ((a Semi.<> b) Semi.<> c) x
+  unComp (a SG.<> (b SG.<> c)) x == unComp ((a SG.<> b) SG.<> c) x
 
 
 data Validation a b
@@ -431,14 +494,29 @@ data Validation a b
   | Success' b
   deriving (Eq, Show)
 
-instance Semi.Semigroup a =>
-  Semi.Semigroup (Validation a b) where
+instance SG.Semigroup a =>
+  SG.Semigroup (Validation a b) where
   (Success' s) <> _ = Success' s
   _ <> (Success' n) = Success' n
-  (Failure' a) <> (Failure' b) = (Failure' (a Semi.<> b))
+  (Failure' a) <> (Failure' b) = (Failure' (a SG.<> b))
 
 instance (Arbitrary a, Arbitrary b) => Arbitrary (Validation a b) where
   arbitrary = do
     a <- arbitrary
     b <- arbitrary
     elements [Failure' a, Success' b]
+
+
+newtype Mem s a =
+  Mem {
+    runMem :: s -> (a, s)
+  }
+
+instance Monoid a => Monoid (Mem s a) where
+  mempty = Mem (\s-> (mempty, s))
+  (Mem a) `mappend` (Mem b) = Mem composed
+    where
+      composed s = (aa <> ba, as)
+        where
+        (ba, bs) = b s
+        (aa, as) = a bs
