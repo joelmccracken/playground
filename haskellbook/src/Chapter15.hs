@@ -189,6 +189,25 @@ main = do
         rmleft `shouldBe` runMem f' 0
         rmright `shouldBe` runMem f' 0
 
+      it "mem assoc" $ do
+        property (memAssoc :: String
+                           -> Mem String String
+                           -> Mem String String
+                           -> Mem String String
+                           -> Bool)
+
+      it "Mem left id" $ do
+        let memLeftId :: Mem String String -> String -> Bool
+            memLeftId comb val =
+              (mempty <> comb) `runMem` val == comb `runMem` val
+        property memLeftId
+
+      it "Mem right id" $ do
+        let memLeftId :: Mem String String -> String -> Bool
+            memLeftId comb val =
+              (comb <> mempty) `runMem` val == comb `runMem` val
+        property memLeftId
+
     describe "Optional monoid" $ do
       it "1 <> 1 works (Sum)" $ do
         Only (Sum 1) `mappend` Only (Sum 1)
@@ -512,6 +531,9 @@ newtype Mem s a =
     runMem :: s -> (a, s)
   }
 
+instance Show (Mem s a) where
+  show a = "Mem"
+
 instance Monoid a => Monoid (Mem s a) where
   mempty = Mem (\s-> (mempty, s))
   (Mem a) `mappend` (Mem b) = Mem composed
@@ -520,3 +542,11 @@ instance Monoid a => Monoid (Mem s a) where
         where
         (ba, bs) = b s
         (aa, as) = a bs
+
+memAssoc x a b c =
+  runMem (a <> (b <> c)) x == runMem ((a <> b) <> c) x
+
+instance (CoArbitrary s, Arbitrary s, Arbitrary a) => Arbitrary (Mem s a) where
+  arbitrary = do
+    x <- arbitrary
+    return $ Mem x
