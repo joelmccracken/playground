@@ -179,12 +179,12 @@ main = do
                   -> Bool)
 
       it "mem spec" $ do
-        let f'      = Mem $ \s -> ("hi", s + (1 :: Int))
+        let f'      = Mem $ \s -> ("hi" :: String, s + (1 :: Int))
             rmzero  = runMem mempty 0
             rmleft  = runMem (f' <> mempty) 0
             rmright = runMem (mempty <> f') 0
-        rmleft  `shouldBe` ("hi", 1)
-        rmright `shouldBe` ("hi", 1)
+        rmleft  `shouldBe` ("hi" :: String, 1)
+        rmright `shouldBe` ("hi" :: String, 1)
         (rmzero :: (String, Int)) `shouldBe` ("", 0)
         rmleft `shouldBe` runMem f' 0
         rmright `shouldBe` runMem f' 0
