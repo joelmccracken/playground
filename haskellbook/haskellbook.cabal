@@ -25,6 +25,7 @@ library
                      , Chapter14
                      , Morse
                      , Chapter15
+                     , Chapter16
                      , Workspace
                      , TestLib
   build-depends:       base >= 4.7 && < 5
