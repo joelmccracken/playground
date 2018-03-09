@@ -6,7 +6,6 @@ import Test.Hspec.QuickCheck
 import Test.QuickCheck
 import Test.QuickCheck.Function
 
-
 {-
 exercises: be kind
 
@@ -56,6 +55,87 @@ instance (Arbitrary a) => Arbitrary (Pair a) where
 
 instance Functor Pair where
   fmap f (Pair a a') = Pair (f a) (f a')
+
+data Two a b = Two a b
+  deriving (Show, Eq)
+
+instance Functor (Two a) where
+  fmap f (Two a b) = Two a (f b)
+
+instance (Arbitrary a, Arbitrary b) => Arbitrary (Two a b) where
+  arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    return $ Two a b
+
+data Three a b c = Three a b c
+  deriving (Show, Eq)
+
+instance Functor (Three a b) where
+  fmap f (Three a b c) = Three a b (f c)
+
+instance (Arbitrary a, Arbitrary b, Arbitrary c) => Arbitrary (Three a b c) where
+  arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    c <- arbitrary
+    return $ Three a b c
+
+data Three' a b = Three' a b b
+  deriving (Show, Eq)
+
+instance Functor (Three' a) where
+  fmap f (Three' a b b') = Three' a (f b) (f b')
+
+instance (Arbitrary a, Arbitrary b) => Arbitrary (Three' a b) where
+  arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    b' <- arbitrary
+    return $ Three' a b b'
+
+
+data Four a b c d = Four a b c d
+  deriving (Show, Eq)
+
+instance Functor (Four a b c) where
+  fmap f (Four a b c d) = Four a b c (f d)
+
+instance (Arbitrary a, Arbitrary b, Arbitrary c, Arbitrary d) => Arbitrary (Four a b c d) where
+  arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    c <- arbitrary
+    d <- arbitrary
+    return $ Four a b c d
+
+data Four' a b = Four' a a a b
+  deriving (Show, Eq)
+
+instance Functor (Four' a) where
+  fmap f (Four' a a' a'' b) = Four' a a' a'' (f b)
+
+instance (Arbitrary a, Arbitrary b) => Arbitrary (Four' a b) where
+  arbitrary = do
+    a <- arbitrary
+    a' <- arbitrary
+    a'' <- arbitrary
+    b <- arbitrary
+    return $ Four' a a' a'' b
+
+data Possibly a
+  = LolNope
+  | Yeppers a
+  deriving (Eq, Show)
+
+instance Functor Possibly where
+  fmap _ LolNope     = LolNope
+  fmap f (Yeppers a) = Yeppers (f a)
+
+instance (Arbitrary a) => Arbitrary (Possibly a) where
+  arbitrary = do
+    a <- arbitrary
+    elements [LolNope, Yeppers a]
 
 main :: IO ()
 main = hspec $ do
@@ -121,9 +201,40 @@ main = hspec $ do
           property (functorIdentity :: Identity Int -> Bool)
         it "compose" $ do
           property (functorCompose' :: Fun Int Int -> Fun Int Int -> Identity Int -> Bool)
-
       describe "pair" $ do
         it "id" $ do
           property (functorIdentity :: Pair Int -> Bool)
         it "compose" $ do
           property (functorCompose' :: Fun Int Int -> Fun Int Int -> Pair Int -> Bool)
+      describe "Two" $ do
+        it "id" $ do
+          property (functorIdentity :: Two Int Char -> Bool)
+        it "compose" $ do
+          property (functorCompose' :: Fun Int Char -> Fun Integer Int -> Two Char Integer -> Bool)
+      describe "Three" $ do
+        it "id" $ do
+          property (functorIdentity :: Three Int Char Char -> Bool)
+        it "compose" $ do
+          property (functorCompose' :: Fun Int Char -> Fun Integer Int -> Three Char () Integer -> Bool)
+      describe "Three'" $ do
+        it "id" $ do
+          property (functorIdentity :: Three' Int Char -> Bool)
+        it "compose" $ do
+          property (functorCompose' :: Fun Int Char -> Fun Integer Int -> Three' Char Integer -> Bool)
+      describe "Four" $ do
+        it "id" $ do
+          property (functorIdentity :: Four Int Char Char Integer -> Bool)
+        it "compose" $ do
+          property (functorCompose' :: Fun Int Char -> Fun Integer Int -> Four Char () String Integer -> Bool)
+      describe "Four'" $ do
+        it "id" $ do
+          property (functorIdentity :: Four' Int Integer -> Bool)
+        it "compose" $ do
+          property (functorCompose' :: Fun Int Char -> Fun String Int -> Four' Char String -> Bool)
+
+{- you cannot implement Functor for Trivial as its kind is * -}
+      describe "Exercise: Possibly" $ do
+        it "id" $ do
+          property (functorIdentity :: Possibly Char -> Bool)
+        it "compose" $ do
+          property (functorCompose' :: Fun Int Char -> Fun String Int -> Possibly String -> Bool)
