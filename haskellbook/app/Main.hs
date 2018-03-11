@@ -14,6 +14,7 @@ import qualified Chapter14
 import qualified Morse
 import qualified Chapter15
 import qualified Chapter16
+import qualified Chapter17
 
 
 
@@ -39,6 +40,7 @@ main = do
           Morse.morseTest
         "ch15" -> withArgs [] $ Chapter15.main
         "ch16" -> withArgs [] $ Chapter16.main
+        "ch17" -> withArgs [] $ Chapter17.main
     _ -> argError
   where
     argError = do
