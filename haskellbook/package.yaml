@@ -1,0 +1,57 @@
+name:                haskellbook
+version:             0.1.0.0
+github:              "joelmccracken/playground/haskellbook"
+license:             BSD3
+author:              "value"
+maintainer:          "value"
+copyright:           "value"
+
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            value
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         none
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+    - containers
+    - time
+    - hspec
+    - QuickCheck
+    - random
+    - split
+    - hlint
+    - semigroups
+
+executables:
+  haskellbook:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -static
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - haskellbook
+
+tests:
+  haskellbook-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - haskellbook
