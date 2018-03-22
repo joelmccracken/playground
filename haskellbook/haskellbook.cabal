@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: eabd874bf967488e6bb513b770916aeb8c7b30103c7f7eb7c942236121c89707
+-- hash: 9dcd69eb25004c8e2f0b914442ef9c4fc8ce7815a7992a88c4e84785e917f38c
 
 name:           haskellbook
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
   build-depends:
       QuickCheck
     , base >=4.7 && <5
+    , checkers
     , containers
     , hlint
     , hspec

@@ -41,6 +41,14 @@ main = do
         "ch15" -> withArgs [] $ Chapter15.main
         "ch16" -> withArgs [] $ Chapter16.main
         "ch17" -> withArgs [] $ Chapter17.main
+        "ch17-list-app" -> withArgs [] $ Chapter17.listApplicativeExercise
+        "ch17-ziplist-app" -> withArgs [] $ Chapter17.zipListApplicativeExercise
+        "ch17-pair-app" -> withArgs [] $ Chapter17.pairApplicativeExercise
+        "ch17-two-app" -> withArgs [] $ Chapter17.twoApplicativeExercise
+        "ch17-three-app" -> withArgs [] $ Chapter17.threeApplicativeExercise
+        "ch17-threep-app" -> withArgs [] $ Chapter17.threepApplicativeExercise
+        "ch17-four-app" -> withArgs [] $ Chapter17.fourApplicativeExercise
+        "ch17-fourp-app" -> withArgs [] $ Chapter17.fourpApplicativeExercise
     _ -> argError
   where
     argError = do
