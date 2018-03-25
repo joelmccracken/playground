@@ -15,8 +15,7 @@ import qualified Morse
 import qualified Chapter15
 import qualified Chapter16
 import qualified Chapter17
-
-
+import qualified Chapter18
 
 main :: IO ()
 main = do
@@ -49,6 +48,12 @@ main = do
         "ch17-threep-app" -> withArgs [] $ Chapter17.threepApplicativeExercise
         "ch17-four-app" -> withArgs [] $ Chapter17.fourApplicativeExercise
         "ch17-fourp-app" -> withArgs [] $ Chapter17.fourpApplicativeExercise
+        "ch18-either-monad" -> withArgs [] $ Chapter18.eitherMonadExercise
+        "ch18-nope-monad" -> withArgs [] $ Chapter18.nopeMonadExercise
+        "ch18-phbteither-monad" -> withArgs [] $ Chapter18.phbtEitherMonadExercise
+        "ch18-identity-monad" -> withArgs [] $ Chapter18.identityMonadExercise
+        "ch18-list-monad" -> withArgs [] $ Chapter18.listMonadExercise
+        "ch18-implement" -> withArgs [] $ Chapter18.implementExercises
     _ -> argError
   where
     argError = do
