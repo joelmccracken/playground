@@ -77,6 +77,14 @@ shortyFound tbs =
     , tbs, "</a>"
     ]
 
+ensureShorty :: R.Connection -> TL.Text -> ActionM ()
+ensureShorty rConn uri = do
+  shawty <- liftIO shortyGen
+  let shorty = BC.pack shawty
+      uri' = encodeUtf8 (TL.toStrict uri)
+  resp <- liftIO (saveURI rConn shorty uri')
+  html (shortyCreated resp shawty)
+
 app :: R.Connection
     -> ScottyM ()
 app rConn = do
@@ -87,12 +95,7 @@ app rConn = do
           parseURI (TL.unpack uri)
     case parsedUri of
       Just _ -> do
-        shawty <- liftIO shortyGen
-        let shorty = BC.pack shawty
-            uri' = encodeUtf8 (TL.toStrict uri)
-        resp <- liftIO
-                (saveURI rConn shorty uri')
-        html (shortyCreated resp shawty)
+        ensureShorty rConn uri
       Nothing -> text (shortyAintUri uri)
   get "/:short" $ do
     short <- param "short"
