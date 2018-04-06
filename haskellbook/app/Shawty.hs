@@ -80,10 +80,22 @@ shortyFound tbs =
 ensureShorty :: R.Connection -> TL.Text -> ActionM ()
 ensureShorty rConn uri = do
   shawty <- liftIO shortyGen
-  let shorty = BC.pack shawty
-      uri' = encodeUtf8 (TL.toStrict uri)
-  resp <- liftIO (saveURI rConn shorty uri')
-  html (shortyCreated resp shawty)
+  -- check if this generated short url already exists
+  resp <- liftIO (getURI rConn $ BC.pack shawty)
+  case resp of
+    Left err -> do
+      text $ TL.pack (show err)
+    Right mbBS ->
+      case mbBS of
+        Just url ->
+          -- it existed, so recur to try again
+          ensureShorty rConn uri
+        Nothing -> do
+          -- it did not exist. continue creating
+          let shorty = BC.pack shawty
+              uri' = encodeUtf8 (TL.toStrict uri)
+          resp <- liftIO (saveURI rConn shorty uri')
+          html (shortyCreated resp shawty)
 
 app :: R.Connection
     -> ScottyM ()
