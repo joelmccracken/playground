@@ -46,6 +46,24 @@ executables:
     dependencies:
     - haskellbook
 
+  shawty:
+    main:                Shawty.hs
+    source-dirs:         app
+    ghc-options:
+      - -threaded
+    dependencies:
+      - base
+      - bytestring
+      - hedis
+      - mtl
+      - network-uri
+      - random
+      - scotty
+      - semigroups
+      - text
+      - transformers
+
+
 tests:
   haskellbook-test:
     main:                Spec.hs
