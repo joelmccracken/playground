@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1c0f0567dcd56b63219c52c01ac75941acb716b01fae9311b47781d2a126a396
+-- hash: d63f7abd9bc0bcea442509d362dc7d69e46304661528a31f3e1b8c93c1b83c9e
 
 name:           haskellbook
 version:        0.1.0.0
@@ -51,6 +51,7 @@ library
       Chapter16
       Chapter17
       Chapter18
+      Chapter20
       Hangman
       Morse
       TestLib
@@ -60,22 +61,17 @@ library
   default-language: Haskell2010
 
 executable haskellbook
-  main-is: Main.hs
-  hs-source-dirs:
-      app
+  main-is: app/Main.hs
   ghc-options: -static -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , haskellbook
   other-modules:
-      Shawty
       Paths_haskellbook
   default-language: Haskell2010
 
 executable shawty
-  main-is: Shawty.hs
-  hs-source-dirs:
-      app
+  main-is: app/Shawty.hs
   ghc-options: -threaded
   build-depends:
       base
@@ -89,7 +85,6 @@ executable shawty
     , text
     , transformers
   other-modules:
-      Main
       Paths_haskellbook
   default-language: Haskell2010
 

@@ -36,8 +36,7 @@ library:
 
 executables:
   haskellbook:
-    main:                Main.hs
-    source-dirs:         app
+    main:                app/Main.hs
     ghc-options:
     - -static
     - -threaded
@@ -47,8 +46,7 @@ executables:
     - haskellbook
 
   shawty:
-    main:                Shawty.hs
-    source-dirs:         app
+    main:                app/Shawty.hs
     ghc-options:
       - -threaded
     dependencies:
