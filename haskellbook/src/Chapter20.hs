@@ -44,6 +44,18 @@ elem'' :: (Foldable t, Eq a)
        -> Bool
 elem'' a = getAny . foldMap (Any . (==a))
 
+minimum' :: (Foldable t, Ord a)
+        => t a
+        -> Maybe a
+minimum' xs = helper xs'
+  where
+    xs' = toList' xs
+    helper [] = Nothing
+    helper xs = Just $ minimum xs
+
+toList' :: Foldable t => t a -> [a]
+toList' = foldr (:) []
+
 main :: IO ()
 main = hspec $ do
   it "sum" $ do
@@ -59,3 +71,5 @@ main = hspec $ do
     elem' 11 [1..10] `shouldBe` False
     elem'' 8 [1..10] `shouldBe` True
     elem'' 11 [1..10] `shouldBe` False
+  it "minimum'" $ do
+    minimum' [5..10] `shouldBe` (Just 5)
