@@ -56,6 +56,23 @@ minimum' xs = helper xs'
 toList' :: Foldable t => t a -> [a]
 toList' = foldr (:) []
 
+
+
+minimum'' :: (Foldable t, Ord a)
+          => t a
+          -> Maybe a
+minimum'' = getMaybe . foldMap (MMin . Just)
+
+newtype MMin a
+  = MMin { getMaybe :: Maybe a }
+  deriving (Show, Eq, Ord)
+
+instance (Ord a) => Monoid (MMin a) where
+  MMin Nothing `mappend` a = a
+  a `mappend` MMin Nothing = a
+  MMin (Just a) `mappend` MMin (Just a') = MMin $ Just (min a a')
+  mempty = MMin Nothing
+
 main :: IO ()
 main = hspec $ do
   it "sum" $ do
@@ -71,5 +88,8 @@ main = hspec $ do
     elem' 11 [1..10] `shouldBe` False
     elem'' 8 [1..10] `shouldBe` True
     elem'' 11 [1..10] `shouldBe` False
+
   it "minimum'" $ do
     minimum' [5..10] `shouldBe` (Just 5)
+    minimum'' [5..10] `shouldBe` (Just 5)
+    minimum'' ([] :: [Integer]) `shouldBe` Nothing
