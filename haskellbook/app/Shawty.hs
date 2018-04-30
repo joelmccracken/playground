@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Shawty where
+module Main where
 
 import Control.Monad (replicateM)
 import Control.Monad.IO.Class (liftIO)
