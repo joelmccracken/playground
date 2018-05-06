@@ -17,6 +17,7 @@ import qualified Chapter16
 import qualified Chapter17
 import qualified Chapter18
 import qualified Chapter20
+import qualified Chapter21
 
 main :: IO ()
 main = do
@@ -56,6 +57,11 @@ main = do
         "ch18-list-monad" -> withArgs [] $ Chapter18.listMonadExercise
         "ch18-implement" -> withArgs [] $ Chapter18.implementExercises
         "ch20" -> withArgs [] $ Chapter20.main
+        "ch21-identity" -> withArgs [] $ Chapter21.qbIdentity
+        "ch21-constant" -> withArgs [] $ Chapter21.qbConstant
+        "ch21-optional" -> withArgs [] $ Chapter21.qbOptional
+        "ch21-list" -> withArgs [] $ Chapter21.qbList
+        _ -> argError
     _ -> argError
   where
     argError = do
