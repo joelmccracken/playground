@@ -216,3 +216,43 @@ qbList = do
   let trigger :: List (Int, Int, [Int])
       trigger = undefined
   quickBatch (traversable trigger)
+
+
+--------------------------------------------------------------------------------
+data Three a b c
+  = Three a b c
+  deriving (Eq, Show)
+
+instance Functor (Three a b) where
+  fmap f (Three a b c) = Three a b (f c)
+
+instance Foldable (Three a b) where
+  foldMap f (Three a b c) = (f c)
+
+instance (Arbitrary a, Arbitrary b, Arbitrary c)
+         => Arbitrary (Three a b c) where
+  arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    c <- arbitrary
+    return $ Three a b c
+
+instance (Eq a, Eq b, Eq c)
+    => EqProp (Three a b c) where
+  (=-=) = eq
+
+instance Traversable (Three a b) where
+  traverse = traverseThree
+
+traverseThree :: Functor f
+                 => (c -> f d)
+                 -> Three a b c
+                 -> f (Three a b d)
+traverseThree f (Three a b c) = Three a b <$> (f c)
+
+qbThree :: IO ()
+qbThree = do
+  putStrLn "three"
+  let trigger :: Three Int Int (Int, Int, [Int])
+      trigger = undefined
+  quickBatch (traversable trigger)
