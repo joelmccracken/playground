@@ -414,18 +414,23 @@ instance ( Functor n
          => Arbitrary (S n a) where
   arbitrary = S <$> arbitrary <*> arbitrary
 
-instance ( Applicative n
-         , Testable (n Property)
-         , EqProp a )
-        => EqProp (S n a) where
-  (S x y) =-= (S p q) =
-        (property $ (=-=) <$> x <*> p)
-    .&. (y =-= q)
+
+-- instance given in book is wrong;
+-- correct one given by christoph horst (Thanks!)
+-- instance ( Applicative n
+--          , Testable (n Property)
+--          , EqProp a )
+--         => EqProp (S n a) where
+--   (S x y) =-= (S p q) =
+--         (property $ (=-=) <$> x <*> p)
+--     .&. (y =-= q)
+
+instance (EqProp a, EqProp (n a)) => EqProp (S n a) where
+   (S x y) =-= (S p q) = (x =-= p) .&. (y =-= q)
 
 instance Traversable n
       => Traversable (S n) where
   traverse = traverseS
-
 
 traverseS :: (Traversable n, Applicative f)
           => (b -> f c)
@@ -443,4 +448,4 @@ qbS = do
   putStrLn "S"
   let trigger :: S [] (Int, Int, [Int])
       trigger = undefined
-  quickBatch (traversable trigger)
+  verboseBatch (traversable trigger)
