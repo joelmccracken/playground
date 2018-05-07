@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Chapter21 where
 
 import Test.Hspec
@@ -254,5 +256,191 @@ qbThree :: IO ()
 qbThree = do
   putStrLn "three"
   let trigger :: Three Int Int (Int, Int, [Int])
+      trigger = undefined
+  quickBatch (traversable trigger)
+
+--------------------------------------------------------------------------------
+
+data Pair a b
+  = Pair a b
+  deriving (Eq, Show)
+
+instance Functor (Pair a) where
+  fmap f (Pair a b) = Pair a (f b)
+
+instance Foldable (Pair a) where
+  foldMap f (Pair a b) = (f b)
+
+instance (Arbitrary a, Arbitrary b)
+         => Arbitrary (Pair a b) where
+  arbitrary = do
+
+    a <- arbitrary
+    b <- arbitrary
+    return $ Pair a b
+
+instance (Eq a, Eq b)
+    => EqProp (Pair a b) where
+  (=-=) = eq
+
+instance Traversable (Pair a) where
+  traverse = traversePair
+
+traversePair :: Functor f
+                 => (b -> f c)
+                 -> Pair a b
+                 -> f (Pair a c)
+traversePair f (Pair a b) = Pair a <$> (f b)
+
+qbPair :: IO ()
+qbPair = do
+  putStrLn "pair"
+  let trigger :: Pair Int (Int, Int, [Int])
+      trigger = undefined
+  quickBatch (traversable trigger)
+
+-------------------------------------------------------
+
+data Big a b
+  = Big a b b
+  deriving (Eq, Show)
+
+instance Functor (Big a) where
+  fmap f (Big a b b') = Big a (f b) (f b')
+
+instance Foldable (Big a) where
+  foldMap = foldMapBig
+
+foldMapBig :: Monoid m
+           => (b -> m)
+           -> (Big a b)
+           -> m
+
+foldMapBig f (Big a b b') = (f b) `mappend` (f b')
+
+instance (Arbitrary a, Arbitrary b)
+         => Arbitrary (Big a b) where
+  arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    b' <- arbitrary
+    return $ Big a b b'
+
+instance (Eq a, Eq b)
+    => EqProp (Big a b) where
+  (=-=) = eq
+
+instance Traversable (Big a) where
+  traverse = traverseBig
+
+traverseBig :: Applicative f
+            => (b -> f c)
+            -> Big a b
+            -> f (Big a c)
+traverseBig f (Big a b b') = Big a <$> (f b) <*> (f b')
+
+qbBig :: IO ()
+qbBig = do
+  putStrLn "big"
+  let trigger :: Big Int (Int, Int, [Int])
+      trigger = undefined
+  quickBatch (traversable trigger)
+
+-------------------------------------------------------
+
+data Bigger a b
+  = Bigger a b b b
+  deriving (Eq, Show)
+
+instance Functor (Bigger a) where
+  fmap f (Bigger a b b' b'') = Bigger a (f b) (f b') (f b'')
+
+instance Foldable (Bigger a) where
+  foldMap = foldMapBigger
+
+foldMapBigger :: Monoid m
+           => (b -> m)
+           -> (Bigger a b)
+           -> m
+foldMapBigger f (Bigger a b b' b'') = (f b) `mappend` (f b') `mappend` (f b'')
+
+instance (Arbitrary a, Arbitrary b)
+         => Arbitrary (Bigger a b) where
+  arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    b' <- arbitrary
+    b'' <- arbitrary
+    return $ Bigger a b b' b''
+
+instance (Eq a, Eq b)
+    => EqProp (Bigger a b) where
+  (=-=) = eq
+
+instance Traversable (Bigger a) where
+  traverse = traverseBigger
+
+traverseBigger :: Applicative f
+            => (b -> f c)
+            -> Bigger a b
+            -> f (Bigger a c)
+traverseBigger f (Bigger a b b' b'') = Bigger a <$> (f b) <*> (f b') <*> (f b'')
+
+qbBigger :: IO ()
+qbBigger = do
+  putStrLn "bigger"
+  let trigger :: Bigger Int (Int, Int, [Int])
+      trigger = undefined
+  quickBatch (traversable trigger)
+
+--------------------------------------------------------------------------------
+
+data S n a
+  = S (n a) a
+  deriving (Eq, Show)
+
+instance Functor n
+      => Functor (S n) where
+  fmap f (S na a) =
+    S (f <$> na) (f a)
+
+instance Foldable n
+      => Foldable (S n) where
+  foldMap g (S na a) = (foldMap g na) `mappend` (g a)
+
+instance ( Functor n
+         , Arbitrary (n a)
+         , Arbitrary a )
+         => Arbitrary (S n a) where
+  arbitrary = S <$> arbitrary <*> arbitrary
+
+instance ( Applicative n
+         , Testable (n Property)
+         , EqProp a )
+        => EqProp (S n a) where
+  (S x y) =-= (S p q) =
+        (property $ (=-=) <$> x <*> p)
+    .&. (y =-= q)
+
+instance Traversable n
+      => Traversable (S n) where
+  traverse = traverseS
+
+
+traverseS :: (Traversable n, Applicative f)
+          => (b -> f c)
+          -> S n b
+          -> f (S n c)
+traverseS g (S na a) =
+  let
+    flippedNofA = traverse g na
+    flippedA = g a
+  in
+    S <$> flippedNofA <*> flippedA
+
+qbS :: IO ()
+qbS = do
+  putStrLn "S"
+  let trigger :: S [] (Int, Int, [Int])
       trigger = undefined
   quickBatch (traversable trigger)

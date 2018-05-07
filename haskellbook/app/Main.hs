@@ -62,6 +62,10 @@ main = do
         "ch21-optional" -> withArgs [] $ Chapter21.qbOptional
         "ch21-list" -> withArgs [] $ Chapter21.qbList
         "ch21-three" -> withArgs [] $ Chapter21.qbThree
+        "ch21-pair" -> withArgs [] $ Chapter21.qbPair
+        "ch21-big" -> withArgs [] $ Chapter21.qbBig
+        "ch21-bigger" -> withArgs [] $ Chapter21.qbBigger
+        "ch21-s" -> withArgs [] $ Chapter21.qbS
         _ -> argError
     _ -> argError
   where
