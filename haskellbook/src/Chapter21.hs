@@ -449,3 +449,57 @@ qbS = do
   let trigger :: S [] (Int, Int, [Int])
       trigger = undefined
   verboseBatch (traversable trigger)
+
+--- Tree
+
+data Tree a
+  = Empty
+  | Leaf a
+  | Node (Tree a) a (Tree a)
+  deriving (Eq, Show)
+
+instance Functor Tree where
+  fmap = treeFmap
+
+treeFmap :: (a -> b) -> Tree a -> Tree b
+treeFmap f Empty = Empty
+treeFmap f (Leaf a) = Leaf (f a)
+treeFmap f (Node l a r) = Node (treeFmap f l) (f a) (treeFmap f r)
+
+instance Foldable Tree where
+  foldMap = treeFoldmap
+
+treeFoldmap :: Monoid m => (a -> m) -> Tree a -> m
+treeFoldmap f Empty = mempty
+treeFoldmap f (Leaf a) = (f a)
+treeFoldmap f (Node l a r) = mconcat [treeFoldmap f l, (f a), treeFoldmap f r]
+
+instance Traversable Tree where
+  traverse = treeTraverse
+
+
+treeTraverse :: Applicative f
+             => (a -> f b)
+             -> Tree a
+             -> f (Tree b)
+treeTraverse g Empty = pure Empty
+treeTraverse g (Leaf a) = Leaf <$> (g a)
+treeTraverse g (Node l a r) = Node <$> (treeTraverse g l) <*> (g a) <*> (treeTraverse g r)
+
+instance Eq a => EqProp (Tree a) where
+  (=-=) = eq
+
+instance Arbitrary a => Arbitrary (Tree a) where
+  arbitrary =
+    frequency [(1, return Empty ),
+               (2, arbitrary >>= return . Leaf),
+               (3, Node <$> arbitrary <*> arbitrary <*> arbitrary)
+              ]
+
+
+qbTree :: IO ()
+qbTree = do
+  putStrLn "Tree"
+  let trigger :: Tree (Int, Int, [Int])
+      trigger = undefined
+  verboseBatch (traversable trigger)

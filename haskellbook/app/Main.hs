@@ -66,6 +66,7 @@ main = do
         "ch21-big" -> withArgs [] $ Chapter21.qbBig
         "ch21-bigger" -> withArgs [] $ Chapter21.qbBigger
         "ch21-s" -> withArgs [] $ Chapter21.qbS
+        "ch21-tree" -> withArgs [] $ Chapter21.qbTree
         _ -> argError
     _ -> argError
   where
