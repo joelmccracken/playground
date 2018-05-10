@@ -3,6 +3,8 @@ module Chapter22 where
 import Control.Applicative
 import Data.Char
 import Test.Hspec
+import Control.Monad.Reader
+
 
 boop = (*2)
 doop = (+10)
@@ -41,6 +43,13 @@ tupled2 = do
 
 tupled3 :: String -> (String, String)
 tupled3 = cap >>= (rev >>= return (,))
+
+-- newtype Reader r a
+--   = Reader { runReader :: r -> a}
+
+-- exercise: ask
+ask :: Reader a a
+ask = Reader id
 
 main :: IO ()
 main = hspec $ do

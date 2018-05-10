@@ -33,6 +33,8 @@ library:
     - hlint
     - semigroups
     - checkers
+    - mtl
+    - transformers
 
 executables:
   haskellbook:
