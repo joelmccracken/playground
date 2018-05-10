@@ -18,6 +18,7 @@ import qualified Chapter17
 import qualified Chapter18
 import qualified Chapter20
 import qualified Chapter21
+import qualified Chapter22
 
 main :: IO ()
 main = do
@@ -67,6 +68,7 @@ main = do
         "ch21-bigger" -> withArgs [] $ Chapter21.qbBigger
         "ch21-s" -> withArgs [] $ Chapter21.qbS
         "ch21-tree" -> withArgs [] $ Chapter21.qbTree
+        "ch22" -> withArgs [] $ Chapter22.main
         _ -> argError
     _ -> argError
   where
