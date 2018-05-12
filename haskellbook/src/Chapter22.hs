@@ -3,7 +3,7 @@ module Chapter22 where
 import Control.Applicative
 import Data.Char
 import Test.Hspec
-import Control.Monad.Reader
+-- import Control.Monad.Reader
 
 
 boop = (*2)
@@ -44,12 +44,32 @@ tupled2 = do
 tupled3 :: String -> (String, String)
 tupled3 = cap >>= (rev >>= return (,))
 
--- newtype Reader r a
---   = Reader { runReader :: r -> a}
+newtype Reader r a
+  = Reader { runReader :: r -> a}
 
 -- exercise: ask
 ask :: Reader a a
 ask = Reader id
+
+bindR :: (r -> a) -> (a -> r -> b) -> (r -> b)
+bindR = (>>=)
+
+
+-- exercise: reading comprehension
+
+myLiftA2 :: Applicative f
+         => (a -> b -> c)
+         -> f a
+         -> f b
+         -> f c
+myLiftA2 g fa fb =
+  g <$> fa <*> fb
+
+myLiftA2' :: (a -> b -> c)
+          -> (r -> a)
+          -> (r -> b)
+          -> (r -> c)
+myLiftA2' = myLiftA2
 
 main :: IO ()
 main = hspec $ do
@@ -58,3 +78,9 @@ main = hspec $ do
     fmapped  "Julie" `shouldBe` "EILUJ"
     tupled   "Julie" `shouldBe` ("eiluJ", "JULIE")
     tupled2  "Julie" `shouldBe` ("eiluJ", "JULIE")
+
+  it "my lift a2" $ do
+    let g = (+)
+    let fa = length
+    let fb = length
+    (myLiftA2' g fa fb) "hi there" `shouldBe` (liftA2 g fa fb) "hi there"
