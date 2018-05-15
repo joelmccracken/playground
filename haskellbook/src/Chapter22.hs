@@ -7,6 +7,9 @@ import Data.Char
 import Test.Hspec
 -- import Control.Monad.Reader
 
+import Test.QuickCheck.Function
+import Test.QuickCheck.Checkers
+import Test.QuickCheck.Classes
 
 boop = (*2)
 doop = (+10)
@@ -122,6 +125,15 @@ instance Applicative (Reader r) where
   (Reader rab) <*> (Reader ra) =
     Reader $ \r -> (rab r) (ra r)
 
+instance Monad (Reader r) where
+  return = pure
+
+  (>>=) :: Reader r a
+        -> (a -> Reader r b)
+        -> Reader r b
+  (Reader ra) >>= aRb =
+    Reader $ \r -> runReader (aRb (ra r)) r
+
 main :: IO ()
 main = hspec $ do
   it "warming up" $ do
@@ -136,10 +148,14 @@ main = hspec $ do
     let fb = length :: String -> Int
     (myLiftA2' g fa fb) "hi there" `shouldBe` (liftA2 g fa fb) "hi there"
 
-  it "testing reader app" $ do
+  it "testing reader applicative" $ do
     let x = pure (+) :: Reader a (Int -> Int -> Int)
     let y = pure 1 :: Reader a Int
     let z = pure 2 :: Reader a Int
     (runReader x) 'a' 1 2 `shouldBe` 3
     (runReader (x <*> y)) 'x' 3 `shouldBe` 4
     (runReader (x <*> y <*> z)) 'x' `shouldBe` 3
+
+  it "testing reader monad" $ do
+    let ra = asks (+5)
+    (runReader (ra >>= \a -> asks (a*))) 2 `shouldBe` 14
