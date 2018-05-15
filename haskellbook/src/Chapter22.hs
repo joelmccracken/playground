@@ -1,3 +1,5 @@
+{-# LANGUAGE InstanceSigs #-}
+
 module Chapter22 where
 
 import Control.Applicative
@@ -54,9 +56,34 @@ ask = Reader id
 bindR :: (r -> a) -> (a -> r -> b) -> (r -> b)
 bindR = (>>=)
 
+newtype HumanName
+  = HumanName String
+  deriving (Eq, Show)
+
+newtype DogName
+  = DogName String
+  deriving (Eq, Show)
+
+newtype Address
+  = Address String
+  deriving (Eq, Show)
+
+data Person =
+  Person
+  { humanName :: HumanName
+  , dogName :: DogName
+  , address :: Address
+  } deriving (Eq, Show)
+
+data Dog =
+  Dog
+  { dogsName :: DogName
+  , dogsAddress :: Address
+  } deriving (Eq, Show)
 
 -- exercise: reading comprehension
 
+-- 1.
 myLiftA2 :: Applicative f
          => (a -> b -> c)
          -> f a
@@ -71,6 +98,30 @@ myLiftA2' :: (a -> b -> c)
           -> (r -> c)
 myLiftA2' = myLiftA2
 
+-- 2.
+
+asks :: (r -> a) -> Reader r a
+asks f = Reader f
+
+-- 3.
+
+instance Functor (Reader r) where
+  fmap :: (a -> b)
+       -> Reader r a
+       -> Reader r b
+  fmap f (Reader ra) =
+    Reader $ (f . ra)
+
+instance Applicative (Reader r) where
+  pure :: a -> Reader r a
+  pure a = Reader $ const a
+
+  (<*>) :: Reader r (a -> b)
+        -> Reader r a
+        -> Reader r b
+  (Reader rab) <*> (Reader ra) =
+    Reader $ \r -> (rab r) (ra r)
+
 main :: IO ()
 main = hspec $ do
   it "warming up" $ do
@@ -81,6 +132,14 @@ main = hspec $ do
 
   it "my lift a2" $ do
     let g = (+)
-    let fa = length
-    let fb = length
+    let fa = length :: String -> Int
+    let fb = length :: String -> Int
     (myLiftA2' g fa fb) "hi there" `shouldBe` (liftA2 g fa fb) "hi there"
+
+  it "testing reader app" $ do
+    let x = pure (+) :: Reader a (Int -> Int -> Int)
+    let y = pure 1 :: Reader a Int
+    let z = pure 2 :: Reader a Int
+    (runReader x) 'a' 1 2 `shouldBe` 3
+    (runReader (x <*> y)) 'x' 3 `shouldBe` 4
+    (runReader (x <*> y <*> z)) 'x' `shouldBe` 3
