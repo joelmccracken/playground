@@ -69,6 +69,9 @@ main = do
         "ch21-s" -> withArgs [] $ Chapter21.qbS
         "ch21-tree" -> withArgs [] $ Chapter21.qbTree
         "ch22" -> withArgs [] $ Chapter22.main
+        "ch22-applicative-reader" -> withArgs [] $ Chapter22.qbApplicativeReader
+        "ch22-monad-reader" -> withArgs [] $ Chapter22.qbMonadReader
+        "ch22-exercise-main" -> withArgs [] $ Chapter22.exerciseMain
         _ -> argError
     _ -> argError
   where

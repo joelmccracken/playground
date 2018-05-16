@@ -1,4 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TupleSections #-}
 
 module Chapter22 where
 
@@ -7,9 +8,16 @@ import Data.Char
 import Test.Hspec
 -- import Control.Monad.Reader
 
+import Data.Function ((&))
+
 import Test.QuickCheck.Function
 import Test.QuickCheck.Checkers
+import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Classes
+
+import Control.Applicative
+import Data.Maybe
+
 
 boop = (*2)
 doop = (+10)
@@ -125,6 +133,27 @@ instance Applicative (Reader r) where
   (Reader rab) <*> (Reader ra) =
     Reader $ \r -> (rab r) (ra r)
 
+
+qbApplicativeReader :: IO ()
+qbApplicativeReader = do
+  putStrLn "appreader"
+  let trigger :: Reader Int (Int, Int, Int)
+      trigger = undefined
+  quickBatch (applicative trigger)
+
+instance (CoArbitrary a, Arbitrary b) => Arbitrary (Reader a b) where
+  arbitrary = Reader <$> arbitrary
+
+
+instance Show (Reader a b) where
+  show _ = "Reader[a,b]"
+
+instance (EqProp a, EqProp b, Show a, Arbitrary a) => EqProp (Reader a b) where
+  (Reader a) =-= (Reader a') = (a =-= a')
+
+-- exercise: reader monad
+-- 1
+
 instance Monad (Reader r) where
   return = pure
 
@@ -133,6 +162,88 @@ instance Monad (Reader r) where
         -> Reader r b
   (Reader ra) >>= aRb =
     Reader $ \r -> runReader (aRb (ra r)) r
+
+qbMonadReader :: IO ()
+qbMonadReader = do
+  putStrLn "monadreader"
+  let trigger :: Reader Int (Int, Int, Int)
+      trigger = undefined
+  quickBatch (monad trigger)
+
+getDogRM :: Person -> Dog
+getDogRM = do
+  name <- dogName
+  addy <- address
+  return $ Dog name addy
+
+-- 2
+getDogRM' :: Reader Person Dog
+getDogRM' = do
+  name <- asks dogName
+  addy <- asks address
+  return $ Dog name addy
+
+---------------------------------------
+-- chapter exercises
+---------------------------------------
+
+x = [1,2,3]
+y = [4,5,6]
+z = [7,8,9]
+
+xs :: Maybe Integer
+xs = zip x y & lookup 3
+
+ys :: Maybe Integer
+ys = zip y z & lookup 6
+
+zs :: Maybe Integer
+zs = lookup 4 $ zip x y
+
+z' :: Integer -> Maybe Integer
+z' n = zip x z & lookup n
+
+tupleLookup i x y = (i,) <$> ( x `zip` y & lookup i)
+
+x1 :: Maybe (Integer, Integer)
+x1 = (,) <$> xs <*> ys
+
+x2 :: Maybe (Integer, Integer)
+x2 = (,) <$> ys <*> zs
+
+x3 :: Integer
+  -> (Maybe Integer, Maybe Integer)
+x3 x = (z' x, z' x)
+
+summed :: Num c
+       => (c, c)
+       -> c
+summed = uncurry (+)
+
+bolt :: Integer -> Bool
+bolt = liftA2 (&&) (>3) (<8)
+
+exerciseMain :: IO ()
+exerciseMain = do
+  -- print $ sequenceA [Just 3, Just 2, Just 1]
+  -- print $ sequenceA [x, y]
+  -- print $ sequenceA [xs, ys]
+  -- print $ summed <$> ((,) <$> xs <*> ys)
+  -- print $ fmap summed ((,) <$> xs <*> zs)
+  -- print $ bolt 7
+  -- print $ fmap bolt z
+  -- print $ sequenceA [(>3), (<8), even] 7
+  print $ foldr (&&) True (seqA 6)
+  print $ (s' & fromMaybe 1 & seqA)
+  print $ fmap bolt ys & fromMaybe False
+
+seqA :: Integral a
+     => a
+     -> [Bool]
+seqA m = sequenceA [(>3), (<8), even] m
+
+s' :: Maybe Integer
+s' = summed <$> ((,) <$> xs <*> ys)
 
 main :: IO ()
 main = hspec $ do
@@ -159,3 +270,9 @@ main = hspec $ do
   it "testing reader monad" $ do
     let ra = asks (+5)
     (runReader (ra >>= \a -> asks (a*))) 2 `shouldBe` 14
+
+  it "bolt" $ do
+    bolt 3 `shouldBe` False
+    bolt 4 `shouldBe` True
+    bolt 7 `shouldBe` True
+    bolt 8 `shouldBe` False
