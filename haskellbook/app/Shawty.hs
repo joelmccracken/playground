@@ -11,6 +11,7 @@ import qualified Database.Redis as R
 import Network.URI (URI, parseURI)
 import qualified System.Random as SR
 import Web.Scotty
+import Control.Monad.Reader
 
 alphaNum :: String
 alphaNum = ['A'..'Z'] ++ ['0'..'9']
@@ -97,31 +98,32 @@ ensureShorty rConn uri = do
           resp <- liftIO (saveURI rConn shorty uri')
           html (shortyCreated resp shawty)
 
-app :: R.Connection
-    -> ScottyM ()
-app rConn = do
-  get "/" $ do
-    uri <- param "uri"
-    let parsedUri :: Maybe URI
-        parsedUri =
-          parseURI (TL.unpack uri)
-    case parsedUri of
-      Just _ -> do
-        ensureShorty rConn uri
-      Nothing -> text (shortyAintUri uri)
-  get "/:short" $ do
-    short <- param "short"
-    uri <- liftIO (getURI rConn short)
-    case uri of
-      Left reply ->
-        text (TL.pack (show reply))
-      Right mbBS -> case mbBS of
-        Nothing -> text "uri not found"
-        Just bs -> html (shortyFound tbs)
-          where tbs :: TL.Text
-                tbs = TL.fromStrict (decodeUtf8 bs)
+app :: ReaderT R.Connection ScottyM ()
+app = do
+  rConn <- ask
+  lift $ do
+    get "/" $ do
+      uri <- param "uri"
+      let parsedUri :: Maybe URI
+          parsedUri =
+            parseURI (TL.unpack uri)
+      case parsedUri of
+        Just _ -> do
+          ensureShorty rConn uri
+        Nothing -> text (shortyAintUri uri)
+    get "/:short" $ do
+      short <- param "short"
+      uri <- liftIO (getURI rConn short)
+      case uri of
+        Left reply ->
+          text (TL.pack (show reply))
+        Right mbBS -> case mbBS of
+          Nothing -> text "uri not found"
+          Just bs -> html (shortyFound tbs)
+            where tbs :: TL.Text
+                  tbs = TL.fromStrict (decodeUtf8 bs)
 
 main :: IO ()
 main = do
   rConn <- R.connect R.defaultConnectInfo
-  scotty 3000 (app rConn)
+  scotty 3000 (runReaderT app rConn)
