@@ -19,6 +19,7 @@ import qualified Chapter18
 import qualified Chapter20
 import qualified Chapter21
 import qualified Chapter22
+import qualified Chapter23
 
 main :: IO ()
 main = do
@@ -72,6 +73,10 @@ main = do
         "ch22-applicative-reader" -> withArgs [] $ Chapter22.qbApplicativeReader
         "ch22-monad-reader" -> withArgs [] $ Chapter22.qbMonadReader
         "ch22-exercise-main" -> withArgs [] $ Chapter22.exerciseMain
+        "ch23" -> withArgs [] $ Chapter23.main
+        "ch23-functor-moi" -> withArgs [] $ Chapter23.qbMoiFunctor
+        "ch23-applicative-moi" -> withArgs [] $ Chapter23.qbMoiApplicative
+        "ch23-monad-moi" -> withArgs [] $ Chapter23.qbMoiMonad
         _ -> argError
     _ -> argError
   where
