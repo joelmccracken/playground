@@ -77,6 +77,7 @@ main = do
         "ch23-functor-moi" -> withArgs [] $ Chapter23.qbMoiFunctor
         "ch23-applicative-moi" -> withArgs [] $ Chapter23.qbMoiApplicative
         "ch23-monad-moi" -> withArgs [] $ Chapter23.qbMoiMonad
+        "ch23-state-fizz-buzz" -> withArgs [] $ Chapter23.stateFizzBuzzMain
         _ -> argError
     _ -> argError
   where

@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 975a11d368ab9702cde84397c5f765cb46cb04c463af500c98dbbe204a62a477
+-- hash: 9b2326897b1f9bef70c8dce83d92ee02bf3e404d744913ea485bb790c43d78be
 
 name:           haskellbook
 version:        0.1.0.0
@@ -33,6 +33,7 @@ library
     , base >=4.7 && <5
     , checkers
     , containers
+    , dlist
     , hlint
     , hspec
     , mtl

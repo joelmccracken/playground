@@ -12,6 +12,9 @@ import Test.Hspec
 import Test.QuickCheck
 import Test.QuickCheck.Classes
 import Test.QuickCheck.Checkers
+import qualified Data.DList as DL
+
+
 
 data Die
   = DieOne
@@ -133,9 +136,8 @@ moiBind (Moi f) g = Moi go
     go s =
       let
         (a, s') = f s
-        msb = (g a)
       in
-        (runMoi msb) s'
+        (runMoi (g a)) s'
 
 qbMoiFunctor :: IO ()
 qbMoiFunctor = do
@@ -158,9 +160,55 @@ qbMoiMonad = do
       trigger = undefined
   quickBatch (monad trigger)
 
+fizzBuzz :: Integer -> String
+fizzBuzz n | n `mod` 15 == 0 = "FizzBuzz"
+           | n `mod` 5  == 0 = "Buzz"
+           | n `mod` 3  == 0 = "Fizz"
+           | otherwise       = show n
 
+fizzBuzzList :: [Integer] -> [String]
+fizzBuzzList list =
+  execState (mapM_ addResult list) []
 
+addResult :: Integer -> State [String] ()
+addResult n = do
+  xs <- get
+  let result = fizzBuzz n
+  put (result : xs)
+
+stateFizzBuzzMain :: IO ()
+stateFizzBuzzMain =
+  mapM_ putStrLn $
+    reverse $ fizzBuzzList [1..100]
+
+----------------------------------------------------------------------------------------------------
+
+fizzBuzzDlist :: [Integer] -> DL.DList String
+fizzBuzzDlist list =
+  execState (mapM_ addResultDL list) DL.empty
+
+addResultDL :: Integer
+            -> State (DL.DList String) ()
+addResultDL n = do
+  xs <- get
+  let result = fizzBuzz n
+  put (DL.snoc xs result)
+
+mainStateFizzBuzzDL :: IO ()
+mainStateFizzBuzzDL =
+  mapM_ putStrLn $ fizzBuzzDlist [1..100]
+
+----------------------------------------------------------------------------------------------------
+
+fizzBuzzFromTo :: Integer
+               -> Integer
+               -> [String]
+
+fizzBuzzFromTo from to =
+  fizzBuzzList $ enumFromThenTo to (to - 1) from
+
+----------------------------------------------------------------------------------------------------
 
 main = hspec $ do
   it "functor" $ do
-   runMoi ((+1) <$> (Moi $ (0,))) 0 `shouldBe` (1,0)
+    runMoi ((+1) <$> (Moi $ (0,))) 0 `shouldBe` (1,0)
