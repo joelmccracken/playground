@@ -6,7 +6,7 @@ module Chapter23 where
 import System.Random
 import Control.Applicative (liftA3)
 import Control.Monad (replicateM)
-import Control.Monad.Trans.State
+import qualified Control.Monad.Trans.State as S
 import System.Random
 import Test.Hspec
 import Test.QuickCheck
@@ -44,19 +44,19 @@ rollDieThreeTimes = do
       (d3, _) = randomR (1,6) s2
   (intToDie d1, intToDie d2, intToDie d3)
 
-rollDie :: State StdGen Die
-rollDie = state $ do
+rollDie :: S.State StdGen Die
+rollDie = S.state $ do
   (n, s) <- randomR (1,6)
   return (intToDie n, s)
 
-rollDie' :: State StdGen Die
-rollDie' = intToDie <$> state (randomR (1,6))
+rollDie' :: S.State StdGen Die
+rollDie' = intToDie <$> S.state (randomR (1,6))
 
-rollDieThreeTimes' :: State StdGen (Die, Die, Die)
+rollDieThreeTimes' :: S.State StdGen (Die, Die, Die)
 rollDieThreeTimes' =
   liftA3 (,,) rollDie rollDie rollDie
 
-nDie :: Int -> State StdGen [Die]
+nDie :: Int -> S.State StdGen [Die]
 nDie n = replicateM n rollDie
 
 
@@ -168,13 +168,13 @@ fizzBuzz n | n `mod` 15 == 0 = "FizzBuzz"
 
 fizzBuzzList :: [Integer] -> [String]
 fizzBuzzList list =
-  execState (mapM_ addResult list) []
+  S.execState (mapM_ addResult list) []
 
-addResult :: Integer -> State [String] ()
+addResult :: Integer -> S.State [String] ()
 addResult n = do
-  xs <- get
+  xs <- S.get
   let result = fizzBuzz n
-  put (result : xs)
+  S.put (result : xs)
 
 stateFizzBuzzMain :: IO ()
 stateFizzBuzzMain =
@@ -185,14 +185,14 @@ stateFizzBuzzMain =
 
 fizzBuzzDlist :: [Integer] -> DL.DList String
 fizzBuzzDlist list =
-  execState (mapM_ addResultDL list) DL.empty
+  S.execState (mapM_ addResultDL list) DL.empty
 
 addResultDL :: Integer
-            -> State (DL.DList String) ()
+            -> S.State (DL.DList String) ()
 addResultDL n = do
-  xs <- get
+  xs <- S.get
   let result = fizzBuzz n
-  put (DL.snoc xs result)
+  S.put (DL.snoc xs result)
 
 mainStateFizzBuzzDL :: IO ()
 mainStateFizzBuzzDL =
@@ -209,6 +209,52 @@ fizzBuzzFromTo from to =
 
 ----------------------------------------------------------------------------------------------------
 
+
+
+-- chapter exercises
+
+-- 1
+
+get :: Moi s s
+get = Moi $ \s -> (s,s)
+
+-- 2
+
+put :: s -> Moi s ()
+put s = Moi $ \s' -> ((), s)
+
+
+-- 3
+exec :: Moi s a -> s -> s
+exec (Moi sa) s = snd (sa s)
+
+-- 4
+eval :: Moi s a -> s -> a
+eval (Moi sa) s = fst (sa s)
+
+-- 5
+modify :: (s -> s) -> Moi s ()
+modify f =
+  Moi $ \s -> ((), f s)
+
 main = hspec $ do
   it "functor" $ do
     runMoi ((+1) <$> (Moi $ (0,))) 0 `shouldBe` (1,0)
+  describe "chapter exercises" $ do
+    it "get" $ do
+      runMoi get "curryIsAmaze" `shouldBe` ("curryIsAmaze", "curryIsAmaze")
+
+    it "put" $ do
+      runMoi (put "curryIsAmaze") "woot" `shouldBe` ((), "curryIsAmaze")
+
+    it "exec" $ do
+      exec (put "wilma") "daphne" `shouldBe` "wilma"
+      exec get "stake a bunny" `shouldBe` "stake a bunny"
+
+    it "eval" $ do
+      eval get "bunnicula" `shouldBe` "bunnicula"
+      eval get "stake a bunny" `shouldBe` "stake a bunny"
+
+    it "modify" $ do
+      runMoi (modify (+1)) 0 `shouldBe` ((),1)
+      runMoi (modify (+1) >> modify (*3)) 2 `shouldBe` ((),9)
