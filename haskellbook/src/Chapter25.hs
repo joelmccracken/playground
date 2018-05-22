@@ -143,3 +143,46 @@ data Either' a b
 instance Bifunctor Either' where
   bimap f g (Left' a) = Left' (f a)
   bimap f g (Right' b) = Right' (g b)
+
+newtype MaybeIO a =
+  MaybeIO { runMaybeIO :: IO (Maybe a) }
+
+newtype MaybeLit a =
+  MaybeList { runMaybeList :: [Maybe a] }
+
+------ IdentityT
+
+instance Applicative Identity where
+  pure = Identity
+
+  (Identity f) <*> (Identity a) =
+    Identity (f a)
+
+newtype IdentityT f a
+  = IdentityT { runIdentityT :: f a }
+  deriving (Eq, Show)
+
+instance (Functor m) =>
+         Functor (IdentityT m) where
+  fmap f (IdentityT fa) =
+    IdentityT (fmap f fa)
+
+instance (Applicative m) =>
+         Applicative (IdentityT m ) where
+  pure = IdentityT . pure
+
+  (IdentityT fab) <*> (IdentityT fa) =
+    IdentityT (fab <*> fa)
+
+instance Monad Identity where
+  return = pure
+
+  (Identity a) >>= f = f a
+
+
+instance (Monad m) =>
+         Monad (IdentityT m) where
+  return = pure
+
+  (IdentityT ma) >>= f =
+    IdentityT $ ma >>= runIdentityT . f
