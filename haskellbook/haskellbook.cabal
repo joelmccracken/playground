@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dd7277c00de5054f244e01a81a06d3338f2a1753cad80a47826fcdde53453e0d
+-- hash: 3524d9dc5a2ea9ab6facf9a9a8ac460f9302390a2022724dc90cb286ebf125a7
 
 name:           haskellbook
 version:        0.1.0.0
@@ -59,6 +59,7 @@ library
       Chapter22
       Chapter23
       Chapter25
+      Chapter26
       Hangman
       Morse
       TestLib

@@ -36,7 +36,7 @@ library:
     - mtl
     - transformers
     - dlist
-    - bifuntors
+    # - bifuntors
 
 executables:
   haskellbook:
