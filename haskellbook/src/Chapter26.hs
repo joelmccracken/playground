@@ -4,12 +4,16 @@
 
 module Chapter26 where
 
--- import Test.QuickCheck.Checkers
--- import Test.QuickCheck.Classes
-
--- import Data.Either
+import qualified Control.Monad.Trans.Except as ET
+import qualified Control.Monad.Trans.Maybe as MT
+import qualified Control.Monad.Identity as IM
+import qualified Control.Monad.Trans.Reader as RT
+import Control.Monad.Trans.Class
+import Control.Monad.IO.Class
+import Control.Monad
+import qualified Control.Monad.Reader as R
 import Test.Hspec
-
+import qualified Chapter22 as C22
 
 newtype MaybeT m a =
   MaybeT { runMaybeT :: m (Maybe a) }
@@ -213,6 +217,107 @@ bindStateT (StateT sma) assmb =
     (a, s') <- sma s
     runStateT (assmb a) s'
 
+
+-- embedded
+
+embedded :: MaybeT
+            (ET.ExceptT
+              String
+              (ReaderT () IO))
+            Int
+embedded = return 1
+
+maybeUnwrap :: ET.ExceptT String
+               (ReaderT () IO) (Maybe Int)
+maybeUnwrap = runMaybeT embedded
+
+eitherUnwrap :: ReaderT () IO
+                (Either String (Maybe Int))
+eitherUnwrap = ET.runExceptT maybeUnwrap
+
+readerUnwrap :: ()
+             -> IO (Either String
+                     (Maybe Int))
+readerUnwrap = runReaderT eitherUnwrap
+
+embedded' :: MaybeT
+            (ET.ExceptT
+              String
+              (ReaderT () IO))
+            Int
+embedded' = MaybeT $ ET.ExceptT $ (ReaderT $ const $ return (Right (Just 1)))
+
+---
+instance MonadTrans MaybeT where
+  lift = MaybeT . liftM Just
+
+instance MonadTrans (ReaderT r) where
+  lift = ReaderT . const
+
+---
+
+instance MonadTrans (EitherT e) where
+  lift = EitherT . liftM Right
+
+instance MonadTrans (StateT s) where
+  lift m = StateT $ \s-> liftM (,s) m
+
+-- exercises: some instances
+
+-- 1.
+
+instance (MonadIO m) =>
+         MonadIO (MaybeT m) where
+  liftIO = lift . liftIO
+
+-- 2.
+
+instance (MonadIO m) =>
+         MonadIO (ReaderT r m) where
+  liftIO = lift . liftIO
+
+-- 3.
+instance (MonadIO m) =>
+         MonadIO (StateT s m) where
+  liftIO = lift . liftIO
+
+
+--- chapter exercises
+
+-- write the code
+-- 1 (and 2)
+
+rDec :: Num a => RT.Reader a a
+rDec = RT.reader (+(-1))
+
+
+-- 3 (and 4)
+rShow :: Show a =>
+         RT.ReaderT a IM.Identity String
+rShow = RT.reader show
+
+
+-- 5
+rPrintAndInc :: (Num a, Show a) =>
+                ReaderT a IO a
+rPrintAndInc =
+  ReaderT $ \r -> do
+    putStrLn $ "Hi: " ++ show r
+    return (r + 1)
+
+-- 6
+
+sPrintIntAccum :: (Num a, Show a) =>
+               StateT a IO String
+sPrintIntAccum =
+  StateT $ \s -> do
+    putStrLn $ "Hi: " ++ show s
+    return (show s, s + 1)
+
+
+-- fix the code
+-- see file Chapter26Excite.hs
+
 main = hspec $ do
   describe "EitherT" $ do
     it "functor" $ do
@@ -291,3 +396,12 @@ main = hspec $ do
         e  = StateT $ \s -> [(5, s)]
         f a = StateT $ \s -> [("yo", s ++ " HOOT")]
       runStateT (e >>= f) "a" `shouldBe` [("yo", "a HOOT")]
+
+  describe "chapter exercises" $ do
+    it "rdec" $ do
+      RT.runReader rDec 1 `shouldBe` 0
+      fmap (RT.runReader rDec) [1..10] `shouldBe` [0..9]
+
+    it "rShow" $ do
+      let correct = ["1", "2", "3", "4"]
+      fmap (RT.runReader rShow) [1..4] `shouldBe` correct
