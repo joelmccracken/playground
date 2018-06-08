@@ -2,6 +2,7 @@
 
 module Main where
 
+
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Data.IORef
@@ -27,18 +28,28 @@ type Handler =
 bumpBoop :: Text
          -> M.Map Text Integer
          -> (M.Map Text Integer, Integer)
-bumpBoop k m = undefined
-
+bumpBoop k m =
+  let
+    newMap = M.insertWith (+) k 1 m
+    newCount = 1 `fromMaybe` M.lookup k newMap
+  in (newMap, newCount)
 
 app :: Scotty ()
 app =
   get "/:key" $ do
-    unprefixed <- param "key"
-    let key' = mappend undefined unprefixed
-    newInteger <- undefined
+    config <- lift ask
+    unprefixed <- (param "key" :: Handler Text)
+    let key' = mappend (prefix config) unprefixed
+    let
+      wrappedReading :: Handler (IO (M.Map Text Integer))
+      wrappedReading = (lift . pure) (readIORef (counts config))
+    counts' <- wrappedReading
+    counts'' <- (lift . lift) counts'
+    let (newCounts, newCount) = bumpBoop key' counts''
+    (lift . lift) (writeIORef (counts config) newCounts)
     html $
       mconcat [ "<h1>Success! Count was: "
-              , TL.pack $ show newInteger
+              , TL.pack $ show newCount
               , "</h1>"
               ]
 
@@ -46,28 +57,6 @@ main :: IO ()
 main = do
   [prefixArg] <- getArgs
   counter <- newIORef M.empty
-  let config = undefined
-      runR   = undefined
+  let config = Config { counts = counter,  prefix = (TL.pack prefixArg) }
+      runR = (flip runReaderT) config
   scottyT 3000 runR app
-
-
--- app :: Config -> Scotty ()
--- app =
---   runReaderT $
---     get "/:key" $ do
---       unprefixed <- (param "key" :: Handler String)
---       let key' :: String
---           key' = mappend undefined undefined
---       newInteger <- (undefined :: Handler Integer)
---       html $
---         mconcat [ "<h1>Success! Count was: "
---                 , TL.pack $ show newInteger
---                 , "</h1>"
---                 ]
-
--- main :: IO ()
--- main = do
---   [prefixArg] <- getArgs
---   counter <- newIORef M.empty
---   let config = Config { counts = counter,  prefix = prefixArg }
---   scottyT 3000 $ app config
