@@ -1,3 +1,5 @@
+module Chapter26Excite where
+
 import Control.Monad.Trans.Maybe
 import Control.Monad
 import Control.Monad.Trans.Class

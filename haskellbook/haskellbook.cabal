@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3524d9dc5a2ea9ab6facf9a9a8ac460f9302390a2022724dc90cb286ebf125a7
+-- hash: 64b53d7e909e5f44e8f6866697a3a567af08baa76c1547a11122c24cbd5f6667
 
 name:           haskellbook
 version:        0.1.0.0
@@ -60,6 +60,7 @@ library
       Chapter23
       Chapter25
       Chapter26
+      Chapter26Excite
       Hangman
       Morse
       TestLib
@@ -74,6 +75,37 @@ executable haskellbook
   build-depends:
       base >=4.7 && <5
     , haskellbook
+  other-modules:
+      Paths_haskellbook
+  default-language: Haskell2010
+
+executable hit_counter
+  main-is: app/HitCounter.hs
+  ghc-options: -threaded
+  build-depends:
+      base
+    , containers
+    , scotty
+    , text
+    , transformers
+  other-modules:
+      Paths_haskellbook
+  default-language: Haskell2010
+
+executable morra
+  main-is: app/Morra.hs
+  ghc-options: -threaded
+  build-depends:
+      base
+    , bytestring
+    , hedis
+    , mtl
+    , network-uri
+    , random
+    , scotty
+    , semigroups
+    , text
+    , transformers
   other-modules:
       Paths_haskellbook
   default-language: Haskell2010

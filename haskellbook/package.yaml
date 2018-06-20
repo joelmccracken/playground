@@ -65,6 +65,34 @@ executables:
       - text
       - transformers
 
+  hit_counter:
+    main:                app/HitCounter.hs
+    ghc-options:
+      - -threaded
+    dependencies:
+      - base
+      - containers
+      - scotty
+      - text
+      - transformers
+
+  morra:
+    main:                app/Morra.hs
+    ghc-options:
+      - -threaded
+    dependencies:
+      - base
+      - bytestring
+      - hedis
+      - mtl
+      - network-uri
+      - random
+      - scotty
+      - semigroups
+      - text
+      - transformers
+
+
 
 tests:
   haskellbook-test:

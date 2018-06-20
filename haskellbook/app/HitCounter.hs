@@ -38,15 +38,17 @@ app :: Scotty ()
 app =
   get "/:key" $ do
     config <- lift ask
-    unprefixed <- (param "key" :: Handler Text)
-    let key' = mappend (prefix config) unprefixed
+    unprefixed <- param "key" :: Handler Text
     let
-      wrappedReading :: Handler (IO (M.Map Text Integer))
-      wrappedReading = (lift . pure) (readIORef (counts config))
+      key' = mappend (prefix config) unprefixed
+      readConfig :: IO (M.Map Text Integer)
+      readConfig = readIORef (counts config)
+      wrappedReading :: ActionT Text (ReaderT Config IO) (M.Map Text Integer)
+      wrappedReading = lift (ReaderT $ const readConfig)
     counts' <- wrappedReading
-    counts'' <- (lift . lift) counts'
-    let (newCounts, newCount) = bumpBoop key' counts''
-    (lift . lift) (writeIORef (counts config) newCounts)
+    let (newCounts, newCount) = bumpBoop key' counts'
+    -- (lift . lift) (writeIORef (counts config) newCounts)
+    lift (ReaderT $ const (writeIORef (counts config) newCounts))
     html $
       mconcat [ "<h1>Success! Count was: "
               , TL.pack $ show newCount
