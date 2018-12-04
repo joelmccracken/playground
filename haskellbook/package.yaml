@@ -76,21 +76,19 @@ executables:
       - text
       - transformers
 
-  morra:
-    main:                app/Morra.hs
+  morra1:
+    main:                app/Morra1.hs
     ghc-options:
       - -threaded
     dependencies:
       - base
-      - bytestring
-      - hedis
-      - mtl
-      - network-uri
       - random
-      - scotty
-      - semigroups
-      - text
       - transformers
+      # - bytestring
+      # - mtl
+
+      # - semigroups
+      # - text
 
 
 

@@ -12,6 +12,7 @@ import Data.Text.Lazy (Text)
 import qualified Data.Text.Lazy as TL
 import System.Environment (getArgs)
 import Web.Scotty.Trans
+import Control.Monad.IO.Class
 
 data Config =
   Config
@@ -41,14 +42,10 @@ app =
     unprefixed <- param "key" :: Handler Text
     let
       key' = mappend (prefix config) unprefixed
-      readConfig :: IO (M.Map Text Integer)
-      readConfig = readIORef (counts config)
-      wrappedReading :: ActionT Text (ReaderT Config IO) (M.Map Text Integer)
-      wrappedReading = lift (ReaderT $ const readConfig)
+      wrappedReading = liftIO $ readIORef (counts config)
     counts' <- wrappedReading
     let (newCounts, newCount) = bumpBoop key' counts'
-    -- (lift . lift) (writeIORef (counts config) newCounts)
-    lift (ReaderT $ const (writeIORef (counts config) newCounts))
+    liftIO $ (writeIORef (counts config) newCounts)
     html $
       mconcat [ "<h1>Success! Count was: "
               , TL.pack $ show newCount
