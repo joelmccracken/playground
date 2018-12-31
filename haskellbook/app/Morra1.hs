@@ -7,10 +7,16 @@ import Control.Monad.IO.Class (liftIO)
 import qualified Control.Monad.Trans.State as ST
 import qualified System.Random as Rand
 
-type ComputerScore = MkComputerSore Int
-type PlayerScore   = MkPlayerScore Int
+newtype ComputerScore
+  = MkComputerScore Int
+  deriving (Show, Eq)
 
-type MorraStateT a = ST.StateT MorraState IO a
+newtype PlayerScore
+  = MkPlayerScore Int
+  deriving (Show, Eq)
+
+type MorraStateT a =
+  ST.StateT MorraState IO a
 
 type MorraGame = MorraStateT ()
 
@@ -41,7 +47,7 @@ playRound = do
 printScore :: MorraState -> IO ()
 printScore state =
   let
-    pscore = playerScore state
+    pscore = show $ playerScore state
     cscore = show $ computerScore state
     scores = "Player Score: " ++ pscore ++  " Computer Score: " ++ cscore
   in
