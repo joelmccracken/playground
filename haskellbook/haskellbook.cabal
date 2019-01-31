@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fba970313f186207d13c8291f5f0c77b2ade2c8cb3bdb85d49d819247b844204
+-- hash: 131eb2dc284694626742b24e71af3f4194c6b84872104b62f9ee21771b93304a
 
 name:           haskellbook
 version:        0.1.0.0
@@ -36,11 +36,13 @@ library
     , hlint
     , hspec
     , mtl
+    , parsers
     , random
     , semigroups
     , split
     , time
     , transformers
+    , trifecta
   exposed-modules:
       Chapter08
       Chapter09
@@ -57,6 +59,7 @@ library
       Chapter21
       Chapter22
       Chapter23
+      Chapter24
       Chapter25
       Chapter26
       Chapter26Excite
