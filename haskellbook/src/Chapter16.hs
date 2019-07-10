@@ -392,6 +392,13 @@ instance Functor TalkToMe where
   fmap f (Print str a) = Print str (f a)
   fmap f (Read fn) = Read (f . fn)
 
+
+newtype F5 a = F5 ((a -> Int) -> Int)
+
+instance Functor F5 where
+  fmap f (F5 g) = F5 (\h -> g (h . f))
+
+
 main :: IO ()
 main = hspec $ do
   describe "chapter content" $ do
