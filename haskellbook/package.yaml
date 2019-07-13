@@ -38,6 +38,8 @@ library:
     - dlist
     - trifecta
     - parsers
+    - raw-strings-qq
+    - bytestring
 
 executables:
   haskellbook:

@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 131eb2dc284694626742b24e71af3f4194c6b84872104b62f9ee21771b93304a
+-- hash: d7172b6095fb479650ceef8b5b7d9e9037b976e1118e6b02d5b4181a7fd34e4a
 
 name:           haskellbook
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
   build-depends:
       QuickCheck
     , base >=4.7 && <5
+    , bytestring
     , checkers
     , containers
     , dlist
@@ -38,6 +39,7 @@ library
     , mtl
     , parsers
     , random
+    , raw-strings-qq
     , semigroups
     , split
     , time
