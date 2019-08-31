@@ -15,6 +15,8 @@ import qualified Data.Map as M
 import Test.Hspec
 import Text.Read (readMaybe)
 import Data.Char (isAlphaNum)
+import Control.Monad.IO.Class (liftIO)
+import Data.List (foldl')
 
 stop :: Parser a
 stop = unexpected "stop"
@@ -364,8 +366,7 @@ parseIdentifierChar =
     p x =
       isAlphaNum x || (x == '-')
 
-ps = parseString
-psv = maybeSuccess . ps parseSemVer mempty
+psv = maybeSuccess . parseString parseSemVer mempty
 
 chEx1Semver =
   hspec $ do
@@ -384,6 +385,7 @@ chEx1Semver =
                  [NOSS "oof",
                   NOSS "sha",
                   NOSS "41af286"])
+
     it "ordering" $ do
       let big = SemVer 2 1 1 [] []
       let little = SemVer 2 1 0 [] []
@@ -401,9 +403,90 @@ chEx1Semver =
       let sv' = SemVer 2 1 1 [] [NOSS "bar"]
       compare sv sv' `shouldBe` EQ
 
+parseDigit :: Parser Char
+parseDigit = oneOf "0123456789"
+
+
+-- base10Integer :: Parser Integer
+-- base10Integer = do
+--   i <- many parseDigit
+--   let mi = readMaybe i :: Maybe Integer
+--   maybe (fail $ "could not parse integer from " ++ i) return mi
+
+base10Integer :: Parser Integer
+base10Integer = do
+  i <- many parseDigit
+  maybe (fail $ "could not parse integer from " ++ i) return $ digitsStringToInteger i
+
+-- like previous, but will parse a negative, too
+base10Integer' :: Parser Integer
+base10Integer' = do
+  neg <- optional (char '-')
+  int <- base10Integer
+  case neg of
+    Just _ -> pure $ int * (-1)
+    Nothing -> pure int
+
+-- there are other ways to do this, but the end of ex2 mentions "accumulating"
+-- in order to parse, so there is an assumption that I should do it more manually
+-- instead of using readMaybe, or whatever (which i did before i rewrote this!)
+-- point being if should not use readMaybe for the earlier, i should not
+-- use it for this sub problem,  i guess
+charToNum :: Char -> Maybe Integer
+charToNum x =
+  case x of
+    '0' -> Just 0
+    '1' -> Just 1
+    '2' -> Just 2
+    '3' -> Just 3
+    '4' -> Just 4
+    '5' -> Just 5
+    '6' -> Just 6
+    '7' -> Just 7
+    '8' -> Just 8
+    '9' -> Just 9
+    _   -> Nothing
+
+digitsStringToInteger :: String -> Maybe Integer
+digitsStringToInteger "" = Nothing
+digitsStringToInteger str =
+  foldl' folder (Just 0) $ fmap charToNum str
+  where folder x y =
+          case (x, y) of
+            (Just x, Just y) -> Just $ (x * 10) + y
+            _ -> Nothing
+
+pd = maybeSuccess . parseString parseDigit mempty
+pint = maybeSuccess . parseString base10Integer mempty
+pint' = maybeSuccess . parseString base10Integer' mempty
+
+
+chEx3IntegerNeg = hspec $ do
+  it "exercise 3 parses negatives" $ do
+    pint' "123abc" `shouldBe` Just 123
+    pint' "-123abc" `shouldBe` Just (-123)
+
+
+chEx2Integer = hspec $ do
+  describe "integer parser" $ do
+    it "parses examples" $ do
+      pd "123" `shouldBe` Just '1'
+      pd "abc" `shouldBe` Nothing
+      pint "123abc" `shouldBe` Just 123
+      pint "abc" `shouldBe` Nothing
+
+chEx3Integer :: IO ()
+chEx3Integer = hspec $ do
+  let pd = maybeSuccess . parseString parseDigit mempty
+  describe "integer parser + negative" $ do
+    it "parses" $ do
+      putStrLn "hullo"
+      1 `shouldBe` 1 :: Expectation
 
 main :: IO ()
 main = do
   earlyParserTesting
   iniParserTesting
   chEx1Semver
+  chEx2Integer
+  chEx3Integer

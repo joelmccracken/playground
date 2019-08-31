@@ -41,6 +41,8 @@ library:
     - raw-strings-qq
     - bytestring
 
+
+
 executables:
   haskellbook:
     main:                app/Main.hs
