@@ -466,7 +466,6 @@ chEx3IntegerNeg = hspec $ do
     pint' "123abc" `shouldBe` Just 123
     pint' "-123abc" `shouldBe` Just (-123)
 
-
 chEx2Integer = hspec $ do
   describe "integer parser" $ do
     it "parses examples" $ do
@@ -483,6 +482,66 @@ chEx3Integer = hspec $ do
       putStrLn "hullo"
       1 `shouldBe` 1 :: Expectation
 
+type NumberingPlanArea = Int
+type Exchange = Int
+type LineNumber = Int
+
+data PhoneNumber
+  = PhoneNumber NumberingPlanArea Exchange LineNumber
+  deriving (Eq, Show)
+
+
+
+parsePhone :: Parser PhoneNumber
+parsePhone = do
+
+  let
+    mm :: String -> Parser Int
+    mm s = (maybe (fail "programmer error, mm called with unverified-as-only-nums string")
+            id
+            $ ((return . fromIntegral) <$> digitsStringToInteger s))
+
+    parsePhone1 :: Parser PhoneNumber
+    parsePhone1 = do
+      _ <- optional $ string "1-"
+      c1 <- ((count 3 digit) >>= mm)
+      char '-'
+      c2 <- ((count 3 digit) >>= mm)
+      char '-'
+      c3 <- ((count 4 digit) >>= mm)
+      pure $ PhoneNumber c1 c2 c3
+
+    parsePhone2 :: Parser PhoneNumber
+    parsePhone2 = do
+      c1 <- ((count 3 digit) >>= mm)
+      c2 <- ((count 3 digit) >>= mm)
+      c3 <- ((count 4 digit) >>= mm)
+      pure $ PhoneNumber c1 c2 c3
+
+    parsePhone3 :: Parser PhoneNumber
+    parsePhone3 = do
+      char '('
+      c1 <- ((count 3 digit) >>= mm)
+      char ')'
+      char ' '
+      c2 <- ((count 3 digit) >>= mm)
+      char '-'
+      c3 <- ((count 4 digit) >>= mm)
+      pure $ PhoneNumber c1 c2 c3
+
+  try parsePhone1 <|> try parsePhone2 <|> parsePhone3
+
+pp :: String -> Maybe PhoneNumber
+pp = maybeSuccess . parseString parsePhone mempty
+
+chEx4Phone = hspec $ do
+  it "parses phone nums according to examples" $ do
+    let correct = Just (PhoneNumber 123 456 7890)
+    pp "123-456-7890" `shouldBe` correct
+    pp "1234567890" `shouldBe` correct
+    pp "(123) 456-7890" `shouldBe` correct
+    pp "1-123-456-7890" `shouldBe` correct
+
 main :: IO ()
 main = do
   earlyParserTesting
@@ -490,3 +549,4 @@ main = do
   chEx1Semver
   chEx2Integer
   chEx3Integer
+  chEx4Phone
