@@ -7,6 +7,7 @@ import Text.Trifecta
 import Text.Parser.Combinators
 import Control.Applicative
 import Data.Ratio ((%))
+import Data.Text (Text, pack)
 import Data.Maybe (fromMaybe)
 import Text.RawString.QQ
 import Data.ByteString (ByteString)
@@ -194,6 +195,11 @@ parseIni = do
 maybeSuccess :: Result a -> Maybe a
 maybeSuccess (Success a) = Just a
 maybeSuccess _ = Nothing
+
+
+eitherSuccess :: Result a -> Either String a
+eitherSuccess (Success a) = Right a
+eitherSuccess (Failure err) = Left $ show err
 
 earlyParserTesting :: IO ()
 earlyParserTesting = do
@@ -490,11 +496,8 @@ data PhoneNumber
   = PhoneNumber NumberingPlanArea Exchange LineNumber
   deriving (Eq, Show)
 
-
-
 parsePhone :: Parser PhoneNumber
 parsePhone = do
-
   let
     mm :: String -> Parser Int
     mm s = (maybe (fail "programmer error, mm called with unverified-as-only-nums string")
@@ -542,6 +545,97 @@ chEx4Phone = hspec $ do
     pp "(123) 456-7890" `shouldBe` correct
     pp "1-123-456-7890" `shouldBe` correct
 
+data AcivityLog =
+  ActivityLog
+    [ ActivityLogDay ]
+
+data ActivityLogDay =
+  ActivityLogDay
+   { dayDate :: Text
+   , dayEntires :: [ ActivityLogEntry ]
+   }
+
+data ActivityLogEntry =
+  ActivityLogEntry
+   { entTime :: Text
+   , entText :: Text
+   }
+  deriving (Show, Eq)
+
+parseActivityLogEntry :: Parser ActivityLogEntry
+parseActivityLogEntry = do
+  h1 <- parseDigit
+  h2 <- parseDigit
+  _ <- char ':'
+  m1 <- parseDigit
+  m2 <- parseDigit
+  _ <- space
+  let time = pack (h1:h2:':':m1:m2:[])
+  txt <- manyTill anyChar actLogEndOfLineInput
+  return (ActivityLogEntry time $ pack txt)
+
+
+actLogEndOfLineInput :: Parser ()
+actLogEndOfLineInput =
+  (try ((char '\n') >>
+        return ())) <|>
+  (try ((string "--") >>
+        (many $ noneOf "\n") >>
+        nlOrEOF)) <|>
+  (try eof)
+
+nlOrEOF :: Parser ()
+nlOrEOF =
+  try ((char '\n') >> return ()) <|>
+  try eof
+
+
+-- chEx5logFileParser :: Int
+
+chEx5logFileParserTest = hspec $ do
+  let
+    pale :: String -> Maybe ActivityLogEntry
+    pale = maybeSuccess . parseString parseActivityLogEntry mempty
+
+    pale' :: String -> Either String ActivityLogEntry
+    pale' = eitherSuccess . parseString parseActivityLogEntry mempty
+
+    paleN :: String -> Maybe [ActivityLogEntry]
+    paleN = maybeSuccess . parseString (many parseActivityLogEntry) mempty
+  describe "parsing ActivityLogEntry" $ do
+    it "parses a single entry (without comments, + newline)" $ do
+      pale "08:00 I did a thing\n" `shouldBe`
+        (Just $ ActivityLogEntry "08:00" "I did a thing")
+    it "parses a single entry (without comments)" $ do
+      pale' "08:00 I did a thing" `shouldBe`
+        (Right $ ActivityLogEntry "08:00" "I did a thing")
+
+    it "parsers a single entry (with comments)" $ do
+      pale "08:00 I did a thing -- did good" `shouldBe`
+        (Just $ ActivityLogEntry "08:00" "I did a thing ")
+
+    it "parses many entries (without comments)" $ do
+      paleN "08:01 so\n90:21 face" `shouldBe`
+        (Just
+         [ ActivityLogEntry "08:01" "so"
+         , ActivityLogEntry "90:21" "face"
+         ])
+
+    it "parses many entries (some with comments)" $ do
+      paleN "08:01 first\n08:02 second -- yep number 2\n08:03 third" `shouldBe`
+        (Just
+         [ ActivityLogEntry "08:01" "first"
+         , ActivityLogEntry "08:02" "second "
+         , ActivityLogEntry "08:03" "third"
+         ])
+
+    it "parses many entries (all with comments)" $ do
+      paleN "08:01 so -- ya \n90:21 face -- cheese" `shouldBe`
+        (Just
+         [ ActivityLogEntry "08:01" "so "
+         , ActivityLogEntry "90:21" "face "
+         ])
+
 main :: IO ()
 main = do
   earlyParserTesting
@@ -550,3 +644,4 @@ main = do
   chEx2Integer
   chEx3Integer
   chEx4Phone
+  chEx5logFileParserTest
