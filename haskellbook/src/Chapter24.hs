@@ -545,15 +545,17 @@ chEx4Phone = hspec $ do
     pp "(123) 456-7890" `shouldBe` correct
     pp "1-123-456-7890" `shouldBe` correct
 
-data AcivityLog =
+data ActivityLog =
   ActivityLog
     [ ActivityLogDay ]
+  deriving (Show, Eq)
 
 data ActivityLogDay =
   ActivityLogDay
    { dayDate :: Text
    , dayEntires :: [ ActivityLogEntry ]
    }
+  deriving (Show, Eq)
 
 data ActivityLogEntry =
   ActivityLogEntry
@@ -561,6 +563,36 @@ data ActivityLogEntry =
    , entText :: Text
    }
   deriving (Show, Eq)
+
+parseActivityLog :: Parser ActivityLog
+parseActivityLog = do
+  days <- many parseActivityLogDay
+  return $ ActivityLog days
+
+parseActivityLogDay :: Parser ActivityLogDay
+parseActivityLogDay = do
+  skipWhitespace
+  day <- parseActivityLogDayDate
+  entries <- parseActivityLogEntries
+  nlOrEOF
+  return $ ActivityLogDay day entries
+
+parseActivityLogDayDate :: Parser Text
+parseActivityLogDayDate = do
+  _ <- string "# "
+  y1 <- parseDigit
+  y2 <- parseDigit
+  y3 <- parseDigit
+  y4 <- parseDigit
+  _ <- char '-'
+  m1 <- parseDigit
+  m2 <- parseDigit
+  _ <- char '-'
+  d1 <- parseDigit
+  d2 <- parseDigit
+  skipMany (noneOf "\n")
+  nlOrEOF
+  return $ pack $ (y1:y2:y3:y4:'-':m1:m2:'-':d1:d2:"")
 
 parseActivityLogEntry :: Parser ActivityLogEntry
 parseActivityLogEntry = do
@@ -574,22 +606,24 @@ parseActivityLogEntry = do
   txt <- manyTill anyChar actLogEndOfLineInput
   return (ActivityLogEntry time $ pack txt)
 
+parseComment :: Parser ()
+parseComment = do
+  string "--"
+  many $ noneOf "\n"
+  nlOrEOF
 
 actLogEndOfLineInput :: Parser ()
 actLogEndOfLineInput =
   (try nlOrEOF) <|>
-
-  (try ((string "--") >>
-        (many $ noneOf "\n") >>
-        nlOrEOF))
+  (try parseComment )
 
 nlOrEOF :: Parser ()
 nlOrEOF =
   try ((char '\n') >> return ()) <|>
   try eof
 
-
--- chEx5logFileParser :: Int
+parseActivityLogEntries :: Parser [ActivityLogEntry]
+parseActivityLogEntries = many parseActivityLogEntry
 
 chEx5logFileParserTest = hspec $ do
   let
@@ -601,7 +635,7 @@ chEx5logFileParserTest = hspec $ do
 
     paleN :: String -> Maybe [ActivityLogEntry]
     paleN = maybeSuccess . parseString (many parseActivityLogEntry) mempty
-  describe "parsing ActivityLogEntry" $ do
+  describe "parseActivityLogEntry" $ do
     it "parses a single entry (without comments, + newline)" $ do
       pale "08:00 I did a thing\n" `shouldBe`
         (Just $ ActivityLogEntry "08:00" "I did a thing")
@@ -612,7 +646,7 @@ chEx5logFileParserTest = hspec $ do
     it "parsers a single entry (with comments)" $ do
       pale "08:00 I did a thing -- did good" `shouldBe`
         (Just $ ActivityLogEntry "08:00" "I did a thing ")
-
+  describe "parseActivityLogEntries" $ do
     it "parses many entries (without comments)" $ do
       paleN "08:01 so\n90:21 face" `shouldBe`
         (Just
@@ -634,6 +668,116 @@ chEx5logFileParserTest = hspec $ do
          [ ActivityLogEntry "08:01" "so "
          , ActivityLogEntry "90:21" "face "
          ])
+
+  describe "parseActivityLogDayDate" $ do
+    let
+      paldd' :: String -> Either String Text
+      paldd' = eitherSuccess . parseString parseActivityLogDayDate mempty
+    it "parses example without comments" $ do
+      paldd' "# 2025-02-05" `shouldBe`
+        Right "2025-02-05"
+
+    it "parses example with comments" $ do
+      paldd' "# 2025-02-05-- ya i derped" `shouldBe`
+        Right "2025-02-05"
+
+  describe "parseActivityLogDay" $ do
+    let
+      pald' :: String -> Either String ActivityLogDay
+      pald' = eitherSuccess . parseString parseActivityLogDay mempty
+
+    it "will parse a day with just the date" $ do
+      pald' "# 2025-02-05-- total lazy day" `shouldBe`
+        (Right $ ActivityLogDay "2025-02-05" [])
+    it "will parse a day with some entries" $ do
+      let input =
+            [r|# 2025-02-05
+08:00 awoke
+08:02 did a thing
+|]
+      pald' input `shouldBe`
+        (Right (
+            ActivityLogDay
+              { dayDate = "2025-02-05"
+              , dayEntires =
+                  [ ActivityLogEntry
+                      { entTime = "08:00"
+                      , entText = "awoke"
+                      }
+                  , ActivityLogEntry
+                      { entTime = "08:02"
+                      , entText = "did a thing"
+                      }
+                  ]
+              }
+            ))
+
+    it "will parse a day with some entries and comments" $ do
+      let input =
+            [r|# 2025-02-05-- less lazy day
+08:00 awoke-- hard to do
+08:02 did a thing-- was so good
+|]
+      pald' input `shouldBe`
+        (Right (
+            ActivityLogDay
+              { dayDate = "2025-02-05"
+              , dayEntires =
+                  [ ActivityLogEntry
+                      { entTime = "08:00"
+                      , entText = "awoke"
+                      }
+                  , ActivityLogEntry
+                      { entTime = "08:02"
+                      , entText = "did a thing"
+                      }
+                  ]
+              }
+            ))
+
+  describe "parseActivityLog" $ do
+    let
+      pal' :: String -> Either String ActivityLog
+      pal' = eitherSuccess . parseString parseActivityLog mempty
+
+    it "should parse" $ do
+       let input =
+            [r|
+
+# 2025-02-05-- less lazy day
+08:00 awoke-- hard to do
+08:02 did a thing-- was so good
+
+# 2025-02-05-- less lazy day
+09:00 awoke -- slept in a bit
+
+|]
+       pal' input `shouldBe`
+        (Right (ActivityLog
+          [ ActivityLogDay
+              { dayDate = "2025-02-05"
+              , dayEntires =
+                  [ ActivityLogEntry
+                      { entTime = "08:00"
+                      , entText = "awoke"
+                      }
+                  , ActivityLogEntry
+                      { entTime = "08:02"
+                      , entText = "did a thing"
+                      }
+                  ]
+              }
+          , ActivityLogDay
+             { dayDate = "2025-02-05"
+             , dayEntires =
+                 [ ActivityLogEntry
+                     { entTime = "09:00"
+                     , entText = "awoke "
+                     }
+                 ]
+             }
+          ]
+          ))
 
 main :: IO ()
 main = do
