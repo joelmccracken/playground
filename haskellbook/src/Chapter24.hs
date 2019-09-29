@@ -577,12 +577,11 @@ parseActivityLogEntry = do
 
 actLogEndOfLineInput :: Parser ()
 actLogEndOfLineInput =
-  (try ((char '\n') >>
-        return ())) <|>
+  (try nlOrEOF) <|>
+
   (try ((string "--") >>
         (many $ noneOf "\n") >>
-        nlOrEOF)) <|>
-  (try eof)
+        nlOrEOF))
 
 nlOrEOF :: Parser ()
 nlOrEOF =
