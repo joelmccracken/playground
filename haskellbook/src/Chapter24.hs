@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE LambdaCase       #-}
 
 module Chapter24 where
 
@@ -18,6 +19,13 @@ import Text.Read (readMaybe)
 import Data.Char (isAlphaNum)
 import Control.Monad.IO.Class (liftIO)
 import Data.List (foldl')
+import Data.Time.Format
+import Data.Time.LocalTime
+import Data.Time.Clock
+import Safe (tailMay)
+import Data.Word
+import Data.Either (isLeft, isRight)
+import Data.Bits
 
 stop :: Parser a
 stop = unexpected "stop"
@@ -167,7 +175,10 @@ newtype Config =
 
 skipWhitespace :: Parser ()
 skipWhitespace =
-  skipMany (char ' ' <|> char '\n')
+  skipMany whitespace
+
+whitespace :: Parser Char
+whitespace = (char ' ' <|> char '\n')
 
 parseSection :: Parser Section
 parseSection = do
@@ -230,8 +241,7 @@ earlyParserTesting = do
   pNL "string'"
   print $ parseString (string' "1233") mempty "123"
 
-iniParserTesting =
-  hspec $ do
+iniParserTesting = do
     describe "assignment parsing" $
       it "can parse  a simple assignment" $ do
         let m = parseByteString
@@ -374,8 +384,7 @@ parseIdentifierChar =
 
 psv = maybeSuccess . parseString parseSemVer mempty
 
-chEx1Semver =
-  hspec $ do
+chEx1Semver = do
     it "passes the specified examples" $ do
       psv "2.1.1" `shouldBe` Just (SemVer 2 1 1 [] [])
       psv "1.0.0-x.7.z.92"  `shouldBe`  Just (SemVer 1 0 0
@@ -467,12 +476,7 @@ pint = maybeSuccess . parseString base10Integer mempty
 pint' = maybeSuccess . parseString base10Integer' mempty
 
 
-chEx3IntegerNeg = hspec $ do
-  it "exercise 3 parses negatives" $ do
-    pint' "123abc" `shouldBe` Just 123
-    pint' "-123abc" `shouldBe` Just (-123)
-
-chEx2Integer = hspec $ do
+chEx2Integer = do
   describe "integer parser" $ do
     it "parses examples" $ do
       pd "123" `shouldBe` Just '1'
@@ -480,13 +484,10 @@ chEx2Integer = hspec $ do
       pint "123abc" `shouldBe` Just 123
       pint "abc" `shouldBe` Nothing
 
-chEx3Integer :: IO ()
-chEx3Integer = hspec $ do
-  let pd = maybeSuccess . parseString parseDigit mempty
-  describe "integer parser + negative" $ do
-    it "parses" $ do
-      putStrLn "hullo"
-      1 `shouldBe` 1 :: Expectation
+chEx3IntegerNeg = do
+  it "exercise 3 parses negatives" $ do
+    pint' "123abc" `shouldBe` Just 123
+    pint' "-123abc" `shouldBe` Just (-123)
 
 type NumberingPlanArea = Int
 type Exchange = Int
@@ -537,7 +538,7 @@ parsePhone = do
 pp :: String -> Maybe PhoneNumber
 pp = maybeSuccess . parseString parsePhone mempty
 
-chEx4Phone = hspec $ do
+chEx4Phone = do
   it "parses phone nums according to examples" $ do
     let correct = Just (PhoneNumber 123 456 7890)
     pp "123-456-7890" `shouldBe` correct
@@ -559,7 +560,7 @@ data ActivityLogDay =
 
 data ActivityLogEntry =
   ActivityLogEntry
-   { entTime :: Text
+   { entTime :: TimeOfDay
    , entText :: Text
    }
   deriving (Show, Eq)
@@ -576,6 +577,9 @@ parseActivityLogDay = do
   entries <- parseActivityLogEntries
   nlOrEOF
   return $ ActivityLogDay day entries
+
+skipCommentsAndWhitespace =
+  skipMany (try (whitespace >> return ()) <|> try parseComment)
 
 parseActivityLogDayDate :: Parser Text
 parseActivityLogDayDate = do
@@ -602,9 +606,10 @@ parseActivityLogEntry = do
   m1 <- parseDigit
   m2 <- parseDigit
   _ <- space
-  let time = pack (h1:h2:':':m1:m2:[])
+  let time = (h1:h2:':':m1:m2:[])
+  time' <- (parseTimeM True defaultTimeLocale "%R" time :: Parser TimeOfDay)
   txt <- manyTill anyChar actLogEndOfLineInput
-  return (ActivityLogEntry time $ pack txt)
+  return (ActivityLogEntry time' $ pack txt)
 
 parseComment :: Parser ()
 parseComment = do
@@ -625,7 +630,7 @@ nlOrEOF =
 parseActivityLogEntries :: Parser [ActivityLogEntry]
 parseActivityLogEntries = many parseActivityLogEntry
 
-chEx5logFileParserTest = hspec $ do
+chEx5logFileParserTest = do
   let
     pale :: String -> Maybe ActivityLogEntry
     pale = maybeSuccess . parseString parseActivityLogEntry mempty
@@ -638,35 +643,35 @@ chEx5logFileParserTest = hspec $ do
   describe "parseActivityLogEntry" $ do
     it "parses a single entry (without comments, + newline)" $ do
       pale "08:00 I did a thing\n" `shouldBe`
-        (Just $ ActivityLogEntry "08:00" "I did a thing")
+        (Just $ ActivityLogEntry (TimeOfDay 8 0 0) "I did a thing")
     it "parses a single entry (without comments)" $ do
       pale' "08:00 I did a thing" `shouldBe`
-        (Right $ ActivityLogEntry "08:00" "I did a thing")
+        (Right $ ActivityLogEntry (TimeOfDay 8 0 0) "I did a thing")
 
     it "parsers a single entry (with comments)" $ do
       pale "08:00 I did a thing -- did good" `shouldBe`
-        (Just $ ActivityLogEntry "08:00" "I did a thing ")
+        (Just $ ActivityLogEntry (TimeOfDay 8 0 0) "I did a thing ")
   describe "parseActivityLogEntries" $ do
     it "parses many entries (without comments)" $ do
-      paleN "08:01 so\n90:21 face" `shouldBe`
+      paleN "08:01 so\n22:21 face" `shouldBe`
         (Just
-         [ ActivityLogEntry "08:01" "so"
-         , ActivityLogEntry "90:21" "face"
+         [ ActivityLogEntry (TimeOfDay 8 1 0) "so"
+         , ActivityLogEntry (TimeOfDay 22 21 0) "face"
          ])
 
     it "parses many entries (some with comments)" $ do
       paleN "08:01 first\n08:02 second -- yep number 2\n08:03 third" `shouldBe`
         (Just
-         [ ActivityLogEntry "08:01" "first"
-         , ActivityLogEntry "08:02" "second "
-         , ActivityLogEntry "08:03" "third"
+         [ ActivityLogEntry (TimeOfDay 8 1 0) "first"
+         , ActivityLogEntry (TimeOfDay 8 2 0) "second "
+         , ActivityLogEntry (TimeOfDay 8 3 0) "third"
          ])
 
     it "parses many entries (all with comments)" $ do
-      paleN "08:01 so -- ya \n90:21 face -- cheese" `shouldBe`
+      paleN "08:01 so -- ya \n22:21 face -- cheese" `shouldBe`
         (Just
-         [ ActivityLogEntry "08:01" "so "
-         , ActivityLogEntry "90:21" "face "
+         [ ActivityLogEntry (TimeOfDay 8 1 0) "so "
+         , ActivityLogEntry (TimeOfDay 22 21 0) "face "
          ])
 
   describe "parseActivityLogDayDate" $ do
@@ -700,12 +705,12 @@ chEx5logFileParserTest = hspec $ do
             ActivityLogDay
               { dayDate = "2025-02-05"
               , dayEntires =
-                  [ ActivityLogEntry
-                      { entTime = "08:00"
+                  [ ActivityLogEntry {
+                        entTime = (TimeOfDay 8 0 0)
                       , entText = "awoke"
                       }
                   , ActivityLogEntry
-                      { entTime = "08:02"
+                      { entTime = (TimeOfDay 8 2 0)
                       , entText = "did a thing"
                       }
                   ]
@@ -724,11 +729,11 @@ chEx5logFileParserTest = hspec $ do
               { dayDate = "2025-02-05"
               , dayEntires =
                   [ ActivityLogEntry
-                      { entTime = "08:00"
+                      { entTime = (TimeOfDay 8 0 0)
                       , entText = "awoke"
                       }
                   , ActivityLogEntry
-                      { entTime = "08:02"
+                      { entTime = (TimeOfDay 8 2 0)
                       , entText = "did a thing"
                       }
                   ]
@@ -743,7 +748,6 @@ chEx5logFileParserTest = hspec $ do
     it "should parse" $ do
        let input =
             [r|
-
 # 2025-02-05-- less lazy day
 08:00 awoke-- hard to do
 08:02 did a thing-- was so good
@@ -758,11 +762,11 @@ chEx5logFileParserTest = hspec $ do
               { dayDate = "2025-02-05"
               , dayEntires =
                   [ ActivityLogEntry
-                      { entTime = "08:00"
+                      { entTime = (TimeOfDay 8 0 0)
                       , entText = "awoke"
                       }
                   , ActivityLogEntry
-                      { entTime = "08:02"
+                      { entTime = (TimeOfDay 8 2 0)
                       , entText = "did a thing"
                       }
                   ]
@@ -771,7 +775,7 @@ chEx5logFileParserTest = hspec $ do
              { dayDate = "2025-02-05"
              , dayEntires =
                  [ ActivityLogEntry
-                     { entTime = "09:00"
+                     { entTime = (TimeOfDay 9 0 0)
                      , entText = "awoke "
                      }
                  ]
@@ -779,12 +783,76 @@ chEx5logFileParserTest = hspec $ do
           ]
           ))
 
+ip4 :: Parser Word32
+ip4 = do
+  b1 <- parseDecimal8Bits
+  _ <- char '.'
+  b2 <- parseDecimal8Bits
+  _ <- char '.'
+  b3 <- parseDecimal8Bits
+  _ <- char '.'
+  b4 <- parseDecimal8Bits
+  let
+    b1' :: Word32
+    b1' = fromIntegral b1
+    b2' :: Word32
+    b2' = fromIntegral b2
+    b3' :: Word32
+    b3' = fromIntegral b3
+    b4' :: Word32
+    b4' = fromIntegral b4
+    res = (b1' `shift` 24) +
+          (b2' `shift` 16) +
+          (b3' `shift` 8) +
+          b4'
+  pure res
+
+parseDecimal8Bits :: Parser Word8
+parseDecimal8Bits = do
+  d1 <- pure <$> digit
+  d2 <- optional digit
+  d3 <- optional digit
+  let d' =
+        case d2 of
+          Just dig -> d1 ++ pure dig
+          Nothing -> d1
+  let d'' =
+        case d3 of
+          Just dig -> d' ++ pure dig
+          Nothing -> d'
+  let mdig = digitsStringToInteger d''
+  dig <- maybe (fail $ "Not parsable as 8 bits: " ++ d'') return mdig
+  if ((dig > 255) || (dig < 0)) then
+    fail $ "not parsable as 8 bits, not in range: " ++ d''
+  else
+    return $ fromIntegral dig
+
+
+chEx6IP4ParserTest = do
+  describe "parseDecimal8Bits" $ do
+    let p8 = eitherSuccess . parseString parseDecimal8Bits mempty
+
+    it "parses" $ do
+      p8 "0" `shouldBe` Right 0
+      p8 "255" `shouldBe` Right 255
+      p8 "100" `shouldSatisfy` isRight
+
+      p8 "-1" `shouldSatisfy` isLeft
+      p8 "256" `shouldSatisfy` isLeft
+  describe "parse ip4" $ do
+    let pip = eitherSuccess . parseString ip4 mempty
+    it "parses" $ do
+      pip "172.16.254.1"  `shouldBe` Right 2886794753
+      pip "204.120.0.15" `shouldBe` Right 3430416399
+
 main :: IO ()
 main = do
   earlyParserTesting
-  iniParserTesting
-  chEx1Semver
-  chEx2Integer
-  chEx3Integer
-  chEx4Phone
-  chEx5logFileParserTest
+  hspec $ do
+    iniParserTesting
+    chEx1Semver
+    chEx2Integer
+    chEx3IntegerNeg
+    chEx4Phone
+    chEx5logFileParserTest
+    chEx6IP4ParserTest

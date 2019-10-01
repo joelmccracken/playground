@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0940bfd827bf8b4af96ecb8eab1d42ae066cc5a31fe4c6f74dead484816e934d
+-- hash: 09156ca95bc15f12803484d72d0093185749affb182b511a3fcd6a325fd2b683
 
 name:           haskellbook
 version:        0.1.0.0
@@ -41,6 +41,7 @@ library
     , parsers
     , random
     , raw-strings-qq
+    , safe
     , semigroups
     , split
     , time
