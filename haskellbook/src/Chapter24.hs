@@ -26,6 +26,7 @@ import Safe (tailMay)
 import Data.Word
 import Data.Either (isLeft, isRight)
 import Data.Bits
+-- import Control.Applicative.Combinators (count')
 
 stop :: Parser a
 stop = unexpected "stop"
@@ -442,30 +443,10 @@ base10Integer' = do
     Just _ -> pure $ int * (-1)
     Nothing -> pure int
 
--- there are other ways to do this, but the end of ex2 mentions "accumulating"
--- in order to parse, so there is an assumption that I should do it more manually
--- instead of using readMaybe, or whatever (which i did before i rewrote this!)
--- point being if should not use readMaybe for the earlier, i should not
--- use it for this sub problem,  i guess
-charToNum :: Char -> Maybe Integer
-charToNum x =
-  case x of
-    '0' -> Just 0
-    '1' -> Just 1
-    '2' -> Just 2
-    '3' -> Just 3
-    '4' -> Just 4
-    '5' -> Just 5
-    '6' -> Just 6
-    '7' -> Just 7
-    '8' -> Just 8
-    '9' -> Just 9
-    _   -> Nothing
-
 digitsStringToInteger :: String -> Maybe Integer
 digitsStringToInteger "" = Nothing
 digitsStringToInteger str =
-  foldl' folder (Just 0) $ fmap charToNum str
+  foldl' folder (Just 0) $ fmap digitToInteger str
   where folder x y =
           case (x, y) of
             (Just x, Just y) -> Just $ (x * 10) + y
@@ -827,7 +808,6 @@ parseDecimal8Bits = do
   else
     return $ fromIntegral dig
 
-
 chEx6IP4ParserTest = do
   describe "parseDecimal8Bits" $ do
     let p8 = eitherSuccess . parseString parseDecimal8Bits mempty
@@ -844,6 +824,43 @@ chEx6IP4ParserTest = do
     it "parses" $ do
       pip "172.16.254.1"  `shouldBe` Right 2886794753
       pip "204.120.0.15" `shouldBe` Right 3430416399
+
+digitToIntegerMap :: Map Char Integer
+digitToIntegerMap =
+  let
+    chars = ['0' .. '9']
+    nums = [0..]
+    cn = zip chars nums
+  in
+    M.fromList cn
+
+digitToInteger :: Char -> Maybe Integer
+digitToInteger =
+  (flip M.lookup) digitToIntegerMap
+
+hexDigitToIntegerMap :: Map Char Integer
+hexDigitToIntegerMap =
+  let
+    chars = ['0' .. '9']++['a'..'f']
+    nums = [0..]
+    cn = zip chars nums
+  in
+    M.fromList cn
+
+hexDigitToInteger :: Char -> Maybe Integer
+hexDigitToInteger =
+  (flip M.lookup) hexDigitToIntegerMap
+
+parseHextet :: Parser String
+parseHextet = do
+  hex <- some hexDigit
+  undefined
+
+
+-- chEx7Ip6Parse = do
+--   it "parses a hex chunk" $ do
+
+
 
 main :: IO ()
 main = do

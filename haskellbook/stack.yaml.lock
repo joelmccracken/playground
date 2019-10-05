@@ -3,7 +3,14 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: parser-combinators-1.0.2@sha256:902fcc2842c2dae5736a187817fad04845e4e3ecd0d34938829e4feb41119515,1957
+    pantry-tree:
+      size: 724
+      sha256: 22fcefb4520b533679bbe4b2e90dc7710abfc1870b5d1459414e17b0ce967064
+  original:
+    hackage: parser-combinators-1.0.2
 snapshots:
 - completed:
     size: 428787

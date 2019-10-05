@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 09156ca95bc15f12803484d72d0093185749affb182b511a3fcd6a325fd2b683
+-- hash: ca8b3b7909a1b7227b2b71abda5b7b4e3c91f2b1c0a439c2530c1b4fdc5d6f80
 
 name:           haskellbook
 version:        0.1.0.0
@@ -38,12 +38,14 @@ library
     , hlint
     , hspec
     , mtl
+    , parser-combinators
     , parsers
     , random
     , raw-strings-qq
     , safe
     , semigroups
     , split
+    , text
     , time
     , transformers
     , trifecta
@@ -81,6 +83,7 @@ executable haskellbook
   build-depends:
       base >=4.7 && <5
     , haskellbook
+    , text
   other-modules:
       Paths_haskellbook
   default-language: Haskell2010
@@ -106,6 +109,7 @@ executable morra1
   build-depends:
       base
     , random
+    , text
     , transformers
   default-language: Haskell2010
 
@@ -136,6 +140,7 @@ test-suite haskellbook-test
   build-depends:
       base >=4.7 && <5
     , haskellbook
+    , text
   other-modules:
       Paths_haskellbook
   default-language: Haskell2010
