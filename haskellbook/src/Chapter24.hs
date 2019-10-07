@@ -9,7 +9,7 @@ import Text.Parser.Combinators
 import Control.Applicative
 import Data.Ratio ((%))
 import Data.Text (Text, pack)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import Text.RawString.QQ
 import Data.ByteString (ByteString)
 import Data.Map (Map)
@@ -26,6 +26,8 @@ import Safe (tailMay)
 import Data.Word
 import Data.Either (isLeft, isRight)
 import Data.Bits
+import Control.Monad (when)
+
 -- import Control.Applicative.Combinators (count')
 
 stop :: Parser a
@@ -443,14 +445,18 @@ base10Integer' = do
     Just _ -> pure $ int * (-1)
     Nothing -> pure int
 
-digitsStringToInteger :: String -> Maybe Integer
-digitsStringToInteger "" = Nothing
-digitsStringToInteger str =
-  foldl' folder (Just 0) $ fmap digitToInteger str
+
+stringToInteger :: Integer -> (Char -> Maybe Integer) -> String -> Maybe Integer
+stringToInteger _ _ "" = Nothing
+stringToInteger base fn str =
+  foldl' folder (Just 0) $ fmap fn str
   where folder x y =
           case (x, y) of
-            (Just x, Just y) -> Just $ (x * 10) + y
+            (Just x, Just y) -> Just $ (x * base) + y
             _ -> Nothing
+
+digitsStringToInteger :: String -> Maybe Integer
+digitsStringToInteger = stringToInteger 10 digitToInteger
 
 pd = maybeSuccess . parseString parseDigit mempty
 pint = maybeSuccess . parseString base10Integer mempty
@@ -764,7 +770,12 @@ chEx5logFileParserTest = do
           ]
           ))
 
-ip4 :: Parser Word32
+
+newtype IPAddress =
+  IPAddress Word32
+  deriving (Eq, Show)
+
+ip4 :: Parser IPAddress
 ip4 = do
   b1 <- parseDecimal8Bits
   _ <- char '.'
@@ -786,7 +797,7 @@ ip4 = do
           (b2' `shift` 16) +
           (b3' `shift` 8) +
           b4'
-  pure res
+  pure $ IPAddress res
 
 parseDecimal8Bits :: Parser Word8
 parseDecimal8Bits = do
@@ -822,8 +833,8 @@ chEx6IP4ParserTest = do
   describe "parse ip4" $ do
     let pip = eitherSuccess . parseString ip4 mempty
     it "parses" $ do
-      pip "172.16.254.1"  `shouldBe` Right 2886794753
-      pip "204.120.0.15" `shouldBe` Right 3430416399
+      pip "172.16.254.1"  `shouldBe` (Right $ IPAddress 2886794753)
+      pip "204.120.0.15" `shouldBe` (Right $ IPAddress 3430416399)
 
 digitToIntegerMap :: Map Char Integer
 digitToIntegerMap =
@@ -851,16 +862,53 @@ hexDigitToInteger :: Char -> Maybe Integer
 hexDigitToInteger =
   (flip M.lookup) hexDigitToIntegerMap
 
-parseHextet :: Parser String
+hexDigitStringToInteger :: String -> Maybe Integer
+hexDigitStringToInteger = stringToInteger 16 hexDigitToInteger
+
+parseHextet :: Parser Integer
 parseHextet = do
   hex <- some hexDigit
-  undefined
+  when (length hex > 4) $ fail "string of hex chars too long for hextet"
+  maybe (fail "non-hex character encountered") return $ hexDigitStringToInteger hex
 
+parseHextets :: Parser [Integer]
+parseHextets = do
+  hx <- parseHextet
+  oo <- optional $ try (char ':' *> parseHextets)
+  return $ maybe [hx] (hx:) oo
 
--- chEx7Ip6Parse = do
---   it "parses a hex chunk" $ do
+parseIp6 = do
+  hexen1 <- parseHextets
+  hexen2 <- optional $ do
+    _ <- string "::"
+    parseHextets
 
+  final <- case hexen2 of
+    Just hexen2' -> do
+      let ptsLen = length hexen1 + length hexen2'
+      when (ptsLen > 7) $ fail "ipv6 address is too long, unable to parse"
+      let inferred = take (8 - ptsLen) $ repeat 0
+      return $ hexen1 ++ inferred ++ hexen2'
+    Nothing -> do
+      when (length hexen1 /= 8) $ fail "ipv6 address is wrong length"
+      return hexen1
+  return $ final
 
+testParseFn = \fn -> eitherSuccess . parseString fn mempty
+
+chEx7Ip6Parse = do
+  describe "ipv6 parsing" $ do
+    let phext = eitherSuccess . parseString parseHextet mempty
+    let pip6 = eitherSuccess . parseString parseIp6 mempty
+    it "parses a hex chunk" $ do
+      hexDigitStringToInteger "ff" `shouldBe` Just 255
+      phext "ffff" `shouldBe` Right 65535
+      phext "xfff" `shouldSatisfy` isLeft
+
+    it "parses full ip6" $ do
+      pip6 "0:1:2:3:4:5:6:7" `shouldBe` Right [0,1,2,3,4,5,6,7]
+      -- (testParseFn $ parseHextet `sepBy` (char ':')) "0:" `shouldBe` Right [0]
+      pip6 "1::3" `shouldBe` Right [1,0,0,0,0,0,0,3]
 
 main :: IO ()
 main = do
@@ -873,3 +921,4 @@ main = do
     chEx4Phone
     chEx5logFileParserTest
     chEx6IP4ParserTest
+    chEx7Ip6Parse
