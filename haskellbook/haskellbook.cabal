@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ca8b3b7909a1b7227b2b71abda5b7b4e3c91f2b1c0a439c2530c1b4fdc5d6f80
+-- hash: 11c08f82a0526983b59f369043139b032148d9feb98ce92774e2ef4e389d7ac2
 
 name:           haskellbook
 version:        0.1.0.0
@@ -69,6 +69,8 @@ library
       Chapter25
       Chapter26
       Chapter26Excite
+      Chapter27
+      Chapter27StrictList
       Hangman
       Morse
       TestLib
