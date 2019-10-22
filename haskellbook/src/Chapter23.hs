@@ -125,12 +125,11 @@ moiAp (Moi f) (Moi g) = Moi go
 
 instance Monad (Moi a) where
   return = pure
-
-  (>>=) :: Moi s a
-        -> (a -> Moi s b)
-        -> Moi s b
   (>>=) = moiBind
 
+moiBind :: Moi s a
+        -> (a -> Moi s b)
+        -> Moi s b
 moiBind (Moi f) g = Moi go
   where
     go s =

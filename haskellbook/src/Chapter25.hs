@@ -80,8 +80,8 @@ traverseCompose atb (Compose fga) =
   in
     fmap Compose tfgb
 
-instance Arbitrary a => Arbitrary (Sum a) where
-  arbitrary = Sum <$> arbitrary
+-- instance Arbitrary a => Arbitrary (Sum a) where
+--   arbitrary = Sum <$> arbitrary
 
 instance EqProp a => EqProp (Sum a) where
   (Sum a) =-= (Sum a') = a =-= a'

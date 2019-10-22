@@ -16,7 +16,7 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import Test.Hspec
 import Text.Read (readMaybe)
-import Data.Char (isAlphaNum)
+import Data.Char (isAlphaNum, toLower)
 import Control.Monad.IO.Class (liftIO)
 import Data.List (foldl')
 import Data.Time.Format
@@ -27,6 +27,7 @@ import Data.Word
 import Data.Either (isLeft, isRight)
 import Data.Bits
 import Control.Monad (when)
+import Data.Monoid
 
 -- import Control.Applicative.Combinators (count')
 
@@ -449,11 +450,15 @@ base10Integer' = do
 stringToInteger :: Integer -> (Char -> Maybe Integer) -> String -> Maybe Integer
 stringToInteger _ _ "" = Nothing
 stringToInteger base fn str =
-  foldl' folder (Just 0) $ fmap fn str
-  where folder x y =
-          case (x, y) of
-            (Just x, Just y) -> Just $ (x * base) + y
-            _ -> Nothing
+  toIntegerFromSplitArabicNumeral base <$> (sequence $ fmap fn str)
+
+toIntegerFromSplitArabicNumeral :: Integer -> [Integer] -> Integer
+toIntegerFromSplitArabicNumeral base parts =
+  foldl' folder 0 parts
+  where
+    folder x y = (x * base) + y
+
+
 
 digitsStringToInteger :: String -> Maybe Integer
 digitsStringToInteger = stringToInteger 10 digitToInteger
@@ -863,13 +868,13 @@ hexDigitToInteger =
   (flip M.lookup) hexDigitToIntegerMap
 
 hexDigitStringToInteger :: String -> Maybe Integer
-hexDigitStringToInteger = stringToInteger 16 hexDigitToInteger
+hexDigitStringToInteger = stringToInteger 16 (hexDigitToInteger . toLower)
 
 parseHextet :: Parser Integer
 parseHextet = do
   hex <- some hexDigit
   when (length hex > 4) $ fail "string of hex chars too long for hextet"
-  maybe (fail "non-hex character encountered") return $ hexDigitStringToInteger hex
+  maybe (fail $ "non-hex character encountered" <> hex) return $ hexDigitStringToInteger hex
 
 parseHextets :: Parser [Integer]
 parseHextets = do
@@ -877,38 +882,78 @@ parseHextets = do
   oo <- optional $ try (char ':' *> parseHextets)
   return $ maybe [hx] (hx:) oo
 
-parseIp6 = do
-  hexen1 <- parseHextets
-  hexen2 <- optional $ do
-    _ <- string "::"
-    parseHextets
+data IPAddress6 =
+  IPAddress6 Word64 Word64
+  deriving (Eq, Show)
 
-  final <- case hexen2 of
-    Just hexen2' -> do
-      let ptsLen = length hexen1 + length hexen2'
-      when (ptsLen > 7) $ fail "ipv6 address is too long, unable to parse"
-      let inferred = take (8 - ptsLen) $ repeat 0
-      return $ hexen1 ++ inferred ++ hexen2'
-    Nothing -> do
-      when (length hexen1 /= 8) $ fail "ipv6 address is wrong length"
-      return hexen1
-  return $ final
+parseIp6 :: Parser IPAddress6
+parseIp6 = do
+  hexen1 <- fromMaybe [] <$> optional parseHextets
+  ellipsis <- optional $ string "::"
+  hexen2 <- fromMaybe [] <$> optional parseHextets
+
+  allParts <- if (isJust ellipsis) then do
+    let ptsLen = length hexen1 + length hexen2
+    when (ptsLen > 7) $ fail "ipv6 address is too long, unable to parse"
+    let inferred = take (8 - ptsLen) $ repeat 0
+    return $ hexen1 ++ inferred ++ hexen2
+  else do
+    when (length hexen1 /= 8) $ fail "ipv6 address is wrong length"
+    return hexen1
+  let beginning = take 4 allParts
+  let ending = drop 4 allParts
+
+  let msw = toIntegerFromSplitArabicNumeral 65536 beginning
+  let lsw = toIntegerFromSplitArabicNumeral 65536 ending
+  return $ IPAddress6 (fromIntegral msw) (fromIntegral lsw)
+
+
+
+  -- allParts <- case hexen2 of
+  --   Just hexen2' -> do
+  --     let ptsLen = length hexen1 + length hexen2'
+  --     when (ptsLen > 7) $ fail "ipv6 address is too long, unable to parse"
+  --     let inferred = take (8 - ptsLen) $ repeat 0
+  --     return $ hexen1 ++ inferred ++ hexen2'
+  --   Nothing -> do
+  --     when (length hexen1 /= 8) $ fail "ipv6 address is wrong length"
+  --     return hexen1
+  -- let beginning = take 4 allParts
+  -- let ending = drop 4 allParts
+
+  -- let msw = toIntegerFromSplitArabicNumeral 65536 beginning
+  -- let lsw = toIntegerFromSplitArabicNumeral 65536 ending
+  -- return $ IPAddress6 (fromIntegral msw) (fromIntegral lsw)
+
+
+ip6ToInteger :: IPAddress6 -> Integer
+ip6ToInteger (IPAddress6 h l) =
+  ((2 ^ 64) *
+   (toInteger h)
+  ) + toInteger l
 
 testParseFn = \fn -> eitherSuccess . parseString fn mempty
 
 chEx7Ip6Parse = do
   describe "ipv6 parsing" $ do
     let phext = eitherSuccess . parseString parseHextet mempty
-    let pip6 = eitherSuccess . parseString parseIp6 mempty
+    let pip6 s = ip6ToInteger <$> (eitherSuccess $ parseString parseIp6 mempty s)
     it "parses a hex chunk" $ do
       hexDigitStringToInteger "ff" `shouldBe` Just 255
       phext "ffff" `shouldBe` Right 65535
       phext "xfff" `shouldSatisfy` isLeft
 
     it "parses full ip6" $ do
-      pip6 "0:1:2:3:4:5:6:7" `shouldBe` Right [0,1,2,3,4,5,6,7]
-      -- (testParseFn $ parseHextet `sepBy` (char ':')) "0:" `shouldBe` Right [0]
-      pip6 "1::3" `shouldBe` Right [1,0,0,0,0,0,0,3]
+      pip6 "0:0:0:0:0:0:0:fe01" `shouldBe` Right 65025
+      pip6 "0:0:0:0:0:0:ac10:fe01" `shouldBe` Right 2886794753
+      pip6 "::ac10:fe01" `shouldBe` Right 2886794753
+
+      pip6 "0:0:0:0:0:ffff:ac10:fe01" `shouldBe` Right 281473568538113
+      pip6 "0:0:0:0:0:ffff:cc78:f" `shouldBe` Right 281474112159759
+      pip6 "FE80:0000:0000:0000:0202:B3FF:FE1E:8329" `shouldBe` Right 338288524927261089654163772891438416681
+      pip6 "FE80::0202:B3FF:FE1E:8329" `shouldBe` Right 338288524927261089654163772891438416681
+      pip6 "2001:DB8::8:800:200C:417A"  `shouldBe` Right 42540766411282592856906245548098208122
+      pip6 "FE80::" `shouldBe` Right 338288524927261089654018896841347694592
 
 main :: IO ()
 main = do

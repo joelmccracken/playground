@@ -4,8 +4,8 @@ module Chapter15 where
 import GHC.Generics
 import Test.Hspec
 import Test.Hspec.QuickCheck
+-- import Test.QuickCheck (Arbitrary(arbitrary), CoArbitrary, frequency)
 import Test.QuickCheck
-
 import Data.Monoid
 import qualified Data.Semigroup as SG
 
@@ -230,13 +230,18 @@ data Optional a
   | Only a
   deriving (Eq, Show)
 
+
+instance Semigroup a
+      => Semigroup (Optional a) where
+  Nada     <> x    = x
+  x        <> Nada = x
+  (Only a) <> (Only b) = Only (a <> b)
+
+
+
 instance Monoid a
       => Monoid (Optional a) where
   mempty = Nada
-
-  mappend Nada x    = x
-  mappend x    Nada = x
-  mappend (Only a) (Only b) = Only (mappend a b)
 
 type Verb = String
 type Adjective = String
@@ -284,10 +289,11 @@ instance Arbitrary Bull where
     frequency [ (1, return Fools)
               , (1, return Twoo) ]
 
+instance Semigroup Bull where
+  _ <> _ = Fools
 
 instance Monoid Bull where
   mempty = Fools
-  mappend _ _ = Fools
 
 type BullMappend =
   Bull -> Bull -> Bull -> Bool
@@ -296,12 +302,13 @@ newtype First' a =
   First' { getFirst' :: Optional a }
   deriving (Eq, Show)
 
+instance Semigroup (First' a) where
+  (<>) x (First' Nada) = x
+  (<>) (First' Nada) x = x
+  (<>) x y = x
+
 instance Monoid (First' a) where
   mempty = First' Nada
-  mappend x (First' Nada) = x
-  mappend (First' Nada) x = x
-  mappend x y = x
-
 
 instance Arbitrary a => Arbitrary (First' a) where
   arbitrary = do
@@ -464,10 +471,10 @@ instance (CoArbitrary a, Arbitrary b) => Arbitrary (Combine a b) where
 instance Show (Combine a b) where
   show _ = "Combine[a->b]"
 
-instance Arbitrary a => Arbitrary (Sum a) where
-  arbitrary = do
-    x <- arbitrary
-    return $ Sum x
+-- instance Arbitrary a => Arbitrary (Sum a) where
+--   arbitrary = do
+--     x <- arbitrary
+--     return $ Sum x
 
 instance (Arbitrary a, CoArbitrary b) => CoArbitrary (Combine a b)
 
@@ -534,14 +541,16 @@ newtype Mem s a =
 instance Show (Mem s a) where
   show a = "Mem"
 
-instance Monoid a => Monoid (Mem s a) where
-  mempty = Mem (\s-> (mempty, s))
-  (Mem a) `mappend` (Mem b) = Mem composed
+instance Semigroup a => Semigroup (Mem s a) where
+  (Mem a) <> (Mem b) = Mem composed
     where
       composed s = (aa <> ba, as)
         where
         (ba, bs) = b s
         (aa, as) = a bs
+
+instance Monoid a => Monoid (Mem s a) where
+  mempty = Mem (\s-> (mempty, s))
 
 memAssoc x a b c =
   runMem (a <> (b <> c)) x == runMem ((a <> b) <> c) x
