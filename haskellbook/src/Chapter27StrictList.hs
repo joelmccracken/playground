@@ -7,7 +7,6 @@ data List a
   | Cons a (List a)
   deriving (Show)
 
-
 take' n _ | n <= 0 = Nil
 take' _ Nil = Nil
 take' n (Cons x xs) =
