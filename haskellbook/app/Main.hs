@@ -21,6 +21,7 @@ import qualified Chapter21
 import qualified Chapter22
 import qualified Chapter23
 import qualified Chapter24
+import qualified Chapter28
 
 main :: IO ()
 main = do
@@ -80,6 +81,7 @@ main = do
         "ch23-monad-moi" -> withArgs [] $ Chapter23.qbMoiMonad
         "ch23-state-fizz-buzz" -> withArgs [] $ Chapter23.stateFizzBuzzMain
         "ch24" -> withArgs [] $ Chapter24.main
+        "ch28" -> withArgs [] $ Chapter28.main
         _ -> argError
     _ -> argError
   where

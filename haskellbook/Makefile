@@ -7,6 +7,7 @@ ch24:
 ch27:
 	ghcid -c 'stack ghci --main-is haskellbook:exe:haskellbook' --test 'Chapter27.main'
 
-
+ch28:
+	ghcid -c 'stack ghci --main-is haskellbook:exe:haskellbook' --test 'Chapter28.ghcid'
 
 default: build

@@ -43,6 +43,7 @@ library:
     - bytestring
     - safe
     - parser-combinators
+    - criterion
 
 executables:
   haskellbook:
