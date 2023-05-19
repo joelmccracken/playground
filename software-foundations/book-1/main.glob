@@ -1,0 +1,28 @@
+DIGEST 6cc4f30c02e14389f605f8242462a17d
+FLF.Main
+ind 10:12 <> day
+constr 26:31 <> monday
+constr 35:41 <> tuesday
+constr 45:53 <> wednesday
+constr 57:64 <> thursday
+constr 68:73 <> friday
+constr 77:84 <> saturday
+constr 88:93 <> sunday
+def 108:119 <> next_weekday
+R124:126 LF.Main <> day ind
+binder 122:122 <> d:3
+R131:133 LF.Main <> day ind
+R146:146 LF.Main <> d:3 var
+R157:162 LF.Main <> monday constr
+R167:173 LF.Main <> tuesday constr
+R179:185 LF.Main <> tuesday constr
+R190:198 LF.Main <> wednesday constr
+R204:212 LF.Main <> wednesday constr
+R217:224 LF.Main <> thursday constr
+R230:237 LF.Main <> thursday constr
+R242:247 LF.Main <> friday constr
+R253:258 LF.Main <> friday constr
+R263:268 LF.Main <> monday constr
+R274:281 LF.Main <> saturday constr
+R286:291 LF.Main <> monday constr
+R297:302 LF.Main <> sunday constr
